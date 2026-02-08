@@ -137,3 +137,15 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Taro
+.taro/
+
+# Local config
+*.local
+
+
