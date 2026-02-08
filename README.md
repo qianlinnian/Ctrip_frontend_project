@@ -55,7 +55,7 @@
 ### 移动端
 ```bash
 cd mobile
-npm install
+npm install --legacy-peer-deps
 npm run dev:h5     # H5开发 调试网页效果
 npm run dev:weapp  # 微信小程序开发 调试微信小程序
 ```
