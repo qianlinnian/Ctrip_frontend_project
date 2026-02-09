@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>审核管理 - 易宿酒店管理平台</title>
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <link rel="stylesheet" href="./pc-common.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+
+    <!-- 侧边栏 -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <h1 class="sidebar-logo">易宿酒店</h1>
+      </div>
+      <nav class="sidebar-menu">
+        <div class="menu-item active">
+          <span class="menu-icon">✅</span>
+          <span>审核管理</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="admin-main">
+
+      <!-- 顶部栏 -->
+      <header class="admin-header">
+        <div class="header-left">
+          <h2 class="page-title">审核管理</h2>
+        </div>
+        <div class="header-right">
+          <div class="header-user" onclick="showUserMenu()">
+            <div class="user-avatar">管</div>
+            <span class="user-name">管理员</span>
+            <span>▼</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- 内容区 -->
+      <div class="admin-content">
+
+        <!-- 操作栏 -->
+        <div class="content-toolbar">
+          <div class="toolbar-left">
+            <div class="btn-group">
+              <button class="btn btn-sm" onclick="filterStatus('all')" id="btnAll">
+                全部 (8)
+              </button>
+              <button class="btn btn-sm" onclick="filterStatus('pending')" id="btnPending">
+                待审核 (5)
+              </button>
+              <button class="btn btn-sm" onclick="filterStatus('approved')" id="btnApproved">
+                已通过 (2)
+              </button>
+              <button class="btn btn-sm" onclick="filterStatus('rejected')" id="btnRejected">
+                已拒绝 (1)
+              </button>
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" placeholder="搜索申请人/酒店名称...">
+            </div>
+          </div>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="data-table">
+          <table>
+            <thead>
+              <tr>
+                <th>申请ID</th>
+                <th>酒店名称</th>
+                <th>申请人</th>
+                <th>联系方式</th>
+                <th>申请类型</th>
+                <th>提交时间</th>
+                <th>审核状态</th>
+                <th>发布状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-status="pending">
+                <td>#A10001</td>
+                <td>希尔顿酒店(上海虹桥店)</td>
+                <td>张三</td>
+                <td>13800138001</td>
+                <td>新增入驻</td>
+                <td>2024-02-07 10:30</td>
+                <td><span class="status-badge status-pending">审核中</span></td>
+                <td><span class="status-badge" style="background: #F0F0F0; color: #999;">未发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10001')">查看详情</button>
+                    <button class="action-btn approve" onclick="approveAudit('A10001')">通过</button>
+                    <button class="action-btn delete" onclick="rejectAudit('A10001')">拒绝</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="pending">
+                <td>#A10002</td>
+                <td>万豪酒店(北京国贸店)</td>
+                <td>李四</td>
+                <td>13900139002</td>
+                <td>新增入驻</td>
+                <td>2024-02-07 09:15</td>
+                <td><span class="status-badge status-pending">审核中</span></td>
+                <td><span class="status-badge" style="background: #F0F0F0; color: #999;">未发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10002')">查看详情</button>
+                    <button class="action-btn approve" onclick="approveAudit('A10002')">通过</button>
+                    <button class="action-btn delete" onclick="rejectAudit('A10002')">拒绝</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="pending">
+                <td>#A10003</td>
+                <td>如家精选酒店(外滩店) - 信息修改</td>
+                <td>王五</td>
+                <td>13700137003</td>
+                <td>信息修改</td>
+                <td>2024-02-06 16:45</td>
+                <td><span class="status-badge status-pending">审核中</span></td>
+                <td><span class="status-badge" style="background: #F0F0F0; color: #999;">未发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10003')">查看详情</button>
+                    <button class="action-btn approve" onclick="approveAudit('A10003')">通过</button>
+                    <button class="action-btn delete" onclick="rejectAudit('A10003')">拒绝</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="approved" data-publish="published">
+                <td>#A10004</td>
+                <td>锦江之星酒店(南京路店)</td>
+                <td>赵六</td>
+                <td>13600136004</td>
+                <td>新增入驻</td>
+                <td>2024-02-06 14:20</td>
+                <td><span class="status-badge status-approved">通过</span></td>
+                <td><span class="status-badge status-approved">已发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10004')">查看详情</button>
+                    <button class="action-btn delete" onclick="offlineHotel('A10004', '锦江之星酒店(南京路店)')">下线</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="pending">
+                <td>#A10005</td>
+                <td>香格里拉大酒店(广州天河店)</td>
+                <td>孙七</td>
+                <td>13500135005</td>
+                <td>新增入驻</td>
+                <td>2024-02-06 11:10</td>
+                <td><span class="status-badge status-pending">审核中</span></td>
+                <td><span class="status-badge" style="background: #F0F0F0; color: #999;">未发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10005')">查看详情</button>
+                    <button class="action-btn approve" onclick="approveAudit('A10005')">通过</button>
+                    <button class="action-btn delete" onclick="rejectAudit('A10005')">拒绝</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="rejected">
+                <td>#A10006</td>
+                <td>无证小旅馆</td>
+                <td>周八</td>
+                <td>13400134006</td>
+                <td>新增入驻</td>
+                <td>2024-02-05 15:30</td>
+                <td><span class="status-badge status-rejected">不通过</span></td>
+                <td><span class="status-badge" style="background: #F0F0F0; color: #999;">未发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10006')">查看详情</button>
+                    <button class="action-btn" onclick="viewRejectReason('A10006')">原因</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="approved" data-publish="offline">
+                <td>#A10007</td>
+                <td>汉庭酒店(人民广场店)</td>
+                <td>吴九</td>
+                <td>13300133007</td>
+                <td>新增入驻</td>
+                <td>2024-02-05 10:00</td>
+                <td><span class="status-badge status-approved">通过</span></td>
+                <td><span class="status-badge" style="background: #FAAD14; color: #FFFFFF;">已下线</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10007')">查看详情</button>
+                    <button class="action-btn approve" onclick="publishHotel('A10007', '汉庭酒店(人民广场店)')">恢复上线</button>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="pending">
+                <td>#A10008</td>
+                <td>全季酒店(深圳福田店)</td>
+                <td>郑十</td>
+                <td>13200132008</td>
+                <td>新增入驻</td>
+                <td>2024-02-04 17:25</td>
+                <td><span class="status-badge status-pending">审核中</span></td>
+                <td><span class="status-badge" style="background: #F0F0F0; color: #999;">未发布</span></td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="action-btn" onclick="viewDetail('A10008')">查看详情</button>
+                    <button class="action-btn approve" onclick="approveAudit('A10008')">通过</button>
+                    <button class="action-btn delete" onclick="rejectAudit('A10008')">拒绝</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- 分页 -->
+          <div class="pagination">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    // 显示用户菜单
+    function showUserMenu() {
+      const menu = confirm('是否退出登录？');
+      if (menu) {
+        alert('已退出登录');
+        window.location.href = 'login.html';
+      }
+    }
+
+    // 查看详情
+    function viewDetail(id) {
+      alert(`查看申请详情 ${id}\n\n实际项目中会弹出详情对话框，显示：\n- 酒店完整信息\n- 营业执照扫描件\n- 申请人身份信息\n- 联系方式\n- 其他资质证明\n等详细信息`);
+    }
+
+    // 通过审核
+    function approveAudit(id) {
+      if (confirm(`确定通过申请 ${id} 吗？\n\n通过后，该酒店将正式入驻平台。`)) {
+        alert(`申请 ${id} 已通过审核`);
+        // 实际项目中会调用API更新状态
+        location.reload();
+      }
+    }
+
+    // 拒绝审核
+    function rejectAudit(id) {
+      const reason = prompt(`拒绝申请 ${id}\n\n请输入拒绝原因：`, '资质不符合要求');
+      if (reason) {
+        alert(`申请 ${id} 审核不通过\n拒绝原因: ${reason}\n\n系统已通知商户`);
+        // 实际项目中会调用API更新状态并发送通知
+        location.reload();
+      }
+    }
+
+    // 查看拒绝原因
+    function viewRejectReason(id) {
+      alert(`申请 ${id} 审核不通过原因:\n\n营业执照不清晰，请重新上传高清扫描件。\n\n请商户修改后重新提交审核。`);
+    }
+
+    // 下线酒店
+    function offlineHotel(id, hotelName) {
+      const reason = prompt(`确定要下线 "${hotelName}" 吗？\n\n请输入下线原因：`, '例如：酒店装修、临时关闭等');
+      if (reason) {
+        alert(`酒店已下线\n\n酒店: ${hotelName}\n下线原因: ${reason}\n\n该酒店将在移动端App中隐藏，但可以随时恢复上线。`);
+        // 实际项目中会调用API更新状态为下线
+        location.reload();
+      }
+    }
+
+    // 发布/恢复上线酒店
+    function publishHotel(id, hotelName) {
+      if (confirm(`确定要恢复上线 "${hotelName}" 吗？\n\n恢复后，该酒店将重新在移动端App中展示。`)) {
+        alert(`酒店已恢复上线\n\n酒店: ${hotelName}\n\n该酒店已重新上架，用户可以正常预订。`);
+        // 实际项目中会调用API更新状态为上线
+        location.reload();
+      }
+    }
+
+    // 筛选状态
+    function filterStatus(status) {
+      const rows = document.querySelectorAll('.data-table tbody tr');
+      const buttons = document.querySelectorAll('.btn-group .btn');
+
+      // 重置按钮样式
+      buttons.forEach(btn => {
+        btn.classList.remove('btn-primary');
+      });
+
+      // 高亮当前按钮
+      if (status === 'all') {
+        document.getElementById('btnAll').classList.add('btn-primary');
+      } else if (status === 'pending') {
+        document.getElementById('btnPending').classList.add('btn-primary');
+      } else if (status === 'approved') {
+        document.getElementById('btnApproved').classList.add('btn-primary');
+      } else if (status === 'rejected') {
+        document.getElementById('btnRejected').classList.add('btn-primary');
+      }
+
+      // 筛选行
+      rows.forEach(row => {
+        if (status === 'all') {
+          row.style.display = '';
+        } else if (row.dataset.status === status) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // 初始化：全部按钮高亮
+    document.getElementById('btnAll').classList.add('btn-primary');
+
+    // 搜索功能
+    document.querySelector('.search-box input').addEventListener('input', function(e) {
+      const keyword = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('.data-table tbody tr');
+
+      rows.forEach(row => {
+        const hotelName = row.children[1].textContent.toLowerCase();
+        const applicant = row.children[2].textContent.toLowerCase();
+        if (hotelName.includes(keyword) || applicant.includes(keyword)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

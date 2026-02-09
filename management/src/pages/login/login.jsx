@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/pc-common.css'
-import {request} from '../../services/api.js'
+import apiService from '../../services/api.js'
 
 const Login = () => {
 
@@ -8,15 +8,31 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const handleLogin = async() => {
-    console.log('Login:', username, password);
-    const response = await request('/auth/login', {username: username, password: password});
-    console.log(response);
+    try {
+      console.log('Login:', username, password);
+      const response = await apiService.request('/auth/login', {username: username, password: password});
+      console.log('request to', '/auth/login', 'with', {username: username, password: password})
+      console.log(response);
+
+
+        //登入成功
+      if (response && response.success) {
+        localStorage.setItem('token', response.data.token);
+
+        //重定向到主页
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+    
   }
 
 
 
   return (
-    <div className="login-page">
+    <>
+    <div class="login-page">
       <div class="login-container">
         {/* 左侧品牌区域 */}
         <div class="login-brand">
@@ -86,7 +102,7 @@ const Login = () => {
 
               <div class="form-footer">
                 <span class="footer-text">还没有账号？</span>
-                <a href="register.html" class="link-primary">立即注册</a>
+                <a href="/register" class="link-primary">立即注册</a>
               </div>
             </form>
           </div>
@@ -94,6 +110,7 @@ const Login = () => {
 
       </div>
     </div>
+    </>
   )
 };
 
