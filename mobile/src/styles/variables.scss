@@ -1,0 +1,63 @@
+/**
+ * 全局 Sass 变量
+ */
+
+// 主题颜色
+$primary-color: #1890ff;      // 主色调 - 蓝色
+$success-color: #52c41a;      // 成功色 - 绿色
+$warning-color: #faad14;      // 警告色 - 橙色
+$error-color: #f5222d;        // 错误色 - 红色
+$info-color: #1890ff;         // 信息色 - 蓝色
+
+// 文字颜色
+$text-color: #333333;         // 主文字颜色
+$text-color-secondary: #666666; // 次要文字颜色
+$text-color-light: #999999;   // 浅色文字
+$text-color-white: #ffffff;   // 白色文字
+
+// 背景颜色
+$bg-color: #f5f5f5;           // 页面背景色
+$bg-color-white: #ffffff;     // 白色背景
+$bg-color-gray: #fafafa;      // 灰色背景
+
+// 边框颜色
+$border-color: #e8e8e8;       // 边框颜色
+$border-color-light: #f0f0f0; // 浅色边框
+
+// 字体大小
+$font-size-xs: 24px;          // 超小号字体 (12px)
+$font-size-sm: 26px;          // 小号字体 (13px)
+$font-size-base: 28px;        // 基础字体 (14px)
+$font-size-lg: 32px;          // 大号字体 (16px)
+$font-size-xl: 36px;          // 超大号字体 (18px)
+$font-size-xxl: 40px;         // 特大号字体 (20px)
+
+// 间距
+$spacing-xs: 8px;             // 超小间距
+$spacing-sm: 16px;            // 小间距
+$spacing-base: 24px;          // 基础间距
+$spacing-lg: 32px;            // 大间距
+$spacing-xl: 40px;            // 超大间距
+
+// 圆角
+$border-radius-sm: 4px;       // 小圆角
+$border-radius-base: 8px;     // 基础圆角
+$border-radius-lg: 12px;      // 大圆角
+$border-radius-circle: 50%;   // 圆形
+
+// 阴影
+$box-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+$box-shadow-base: 0 4px 12px rgba(0, 0, 0, 0.08);
+$box-shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.12);
+
+// 动画时长
+$transition-duration: 0.3s;
+
+// 星级颜色
+$star-color: #faad14;
+
+// 评分颜色
+$rating-excellent: #52c41a;   // 优秀 4.5+
+$rating-good: #1890ff;        // 良好 4.0-4.5
+$rating-average: #faad14;     // 一般 3.0-4.0
+$rating-poor: #f5222d;        // 较差 <3.0
