@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/pc-common.css'
 import apiService from '../../services/api.js'
 
@@ -7,6 +8,8 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const navigate = useNavigate();
+
   const handleLogin = async() => {
     try {
       console.log('Login:', username, password);
@@ -14,13 +17,13 @@ const Login = () => {
       console.log('request to', '/auth/login', 'with', {username: username, password: password})
       console.log(response);
 
-
         //登入成功
       if (response && response.success) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
 
         //重定向到主页
-        navigate('/dashboard');
+        navigate('/merchant-dashboard');
       }
     } catch (error) {
       console.error('Login failed:', error);
