@@ -46,7 +46,7 @@
 
 | 端 | 技术 |
 |---|---|
-| 移动端 | React 18 + Taro 3 |
+| 移动端 | React 18 + Taro 4 |
 | PC端 | React 18 + Vite |
 | 后端 | Node.js 18 + Express 4 + MySQL + JWT |
 
@@ -55,7 +55,7 @@
 ### 移动端
 ```bash
 cd mobile
-npm install --legacy-peer-deps
+npm install
 npm run dev:h5     # H5开发 调试网页效果
 npm run dev:weapp  # 微信小程序开发 调试微信小程序
 ```
