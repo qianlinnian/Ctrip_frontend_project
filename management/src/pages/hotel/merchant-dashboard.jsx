@@ -28,6 +28,7 @@ const Dashboard = () => {
                 const response = await fetch('https://m1.apifoxmock.com/m1/7818580-7566390-default/hotel/info');
                 if(!response.ok) throw new Error('Network response was not ok');
 
+                //promise对象只能.json一次
                 const data = await response.json();
                 const hotels = data.hotel;
        
@@ -57,9 +58,14 @@ const Dashboard = () => {
         console.log('用户信息获取完成')
     }
 
-    function handleAddHotel() {
+    function handleNewHotel() {
         console.log("跳转到新增酒店页面")
-        navigate('/merchant-hotel-form')
+        navigate('/merchant-dashboard/new')
+    }
+
+    function handleEditHotel(id) {
+        console.log("跳转到编辑酒店页面")
+        navigate(`/merchant-dashboard/edit/${id}`);
     }
 
 
@@ -111,7 +117,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                     <div class="toolbar-right">
-                        <button class="btn btn-primary btn-sm" onClick={handleAddHotel}>
+                        <button class="btn btn-primary btn-sm" onClick={handleNewHotel}>
                         ➕ 新增酒店
                         </button>
                     </div>
@@ -146,6 +152,9 @@ const Dashboard = () => {
                                         <td>{item.auditStatus}</td>
                                         <td>{item.publishStatus}</td>
                                         <td>{item.submitTime}</td>
+                                        <td>
+                                            <button onClick={() => handleEditHotel(item.name)}>编辑</button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

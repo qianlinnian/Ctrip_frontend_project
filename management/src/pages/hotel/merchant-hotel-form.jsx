@@ -1,16 +1,57 @@
-import react, { useState } from 'react';
+import react, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Avatar, Layout, Form, Button, Input, Rate, Upload } from 'antd'
 
+
+
+const { Header, Content, Sider } = Layout;
 
 const MerchantHotelForm = () => {
 
 
+    const [cityList, setCityList] = useState([
+        '北京', '上海', '广州', '深圳', '杭州', '武汉', '西安', '南京', '成都', '天津',
+        '重庆', '青岛', '大连', '厦门', '长沙', '济南', '郑州', '合肥', '福州', '台北'
+    ]);
+
+    const {id} = useParams();
+    console.log('id:', id)
+    const [formData, setFormData] = useState({
+        name: '',
+        city: '',
+        address: '',
+        price: '',
+        stars: '',
+        description: '',
+        phone: '',
+
+    });
+
+    useEffect(() => {
+        if (id) {
+            loadHotelData(id);// Fetch hotel data by id and set it to formData
+        }
+    }, [id]);
+
+    const loadHotelData = async (id) => {
+        try {
+            const response = await fetch(`https://m1.apifoxmock.com/m1/7818580-7566390-default/hotel/idtoinfo/${id}`);
+
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();         
+            setFormData(data);
+            console.log('formData', formData)
+        } catch (error) {
+            console.error('Error fetching hotel data:', error);
+        }
+    };
 
     return (
         <>
             <div className="admin-layout">
 
                 {/* <!-- 侧边栏 --> */}
-                <aside className="admin-sidebar">
+                <Sider className="admin-sidebar">
                     <div className="sidebar-header">
                         <h1 className="sidebar-logo">易宿酒店</h1>
                         <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>商户端</p>
@@ -18,18 +59,21 @@ const MerchantHotelForm = () => {
                     <nav className="sidebar-menu">
                         <div className="menu-item active">
                             <span className="menu-icon">🏨</span>
-                            <span>我的酒店</span>
+                            <span>我的酒店</span>   
                         </div>
                     </nav>
-                </aside>
+                </Sider>
 
                 {/* <!-- 主内容区 -->   */}
                 <main className="admin-main">
 
                     {/* <!-- 顶部栏 --> */}
-                    <header className="admin-header">
+                    <Header className="admin-header">
                         <div className="header-left">
                             <h2 className="page-title">酒店信息录入/编辑</h2>
+                        </div>
+                        <div className="header-right">
+                            <Avatar alt='用户头像' src=''/>
                         </div>
                         <div className="header-right">
                             <div className="header-user" onclick="showUserMenu()">
@@ -38,10 +82,10 @@ const MerchantHotelForm = () => {
                                 <span>▼</span>
                             </div>
                         </div>
-                    </header>
+                    </Header>
 
                     {/* <!-- 内容区 --> */}
-                    <div className="admin-content">
+                    <Content className="admin-content">
 
                         {/* <!-- 表单卡片 --> */}
                         <div className="card" style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -49,208 +93,125 @@ const MerchantHotelForm = () => {
                             <h3 style={{ marginBottom: '24px', fontSize: '18px', color: 'var(--text-primary)' }}>
                                 基本信息
                             </h3>
-
-                            <form id="hotelForm">
+                            <Form id="hotelForm">
 
                                 {/* <!-- 酒店名称 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        酒店名称 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input"
-                                        placeholder="请输入酒店名称"
-                                        id="hotelName"
-                                    />
-                                </div>
+                                <Form.Item
+                                    label="酒店名称"
+                                    name="name"
+                                    rules={[{ required: true, message: '请输入酒店名称' }]}
+                                >
+                                    <Input placeholder="请输入酒店名称" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                                </Form.Item>
+
+                        
 
                                 {/* <!-- 所属城市 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        所属城市 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <select className="input" id="city">
-                                        <option value="">请选择城市</option>
-                                        <option value="上海">上海</option>
-                                        <option value="北京">北京</option>
-                                        <option value="广州">广州</option>
-                                        <option value="深圳">深圳</option>
-                                        <option value="杭州">杭州</option>
-                                        <option value="成都">成都</option>
-                                    </select>
-                                </div>
+                                <Form.Item label='所属城市'>
+                                    <Input placeholder="请输入所属城市" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+                                </Form.Item>
 
                                 {/* <!-- 详细地址 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        详细地址 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input"
-                                        placeholder="请输入详细地址（街道、门牌号）"
-                                        id="address"
-                                    />
-                                </div>
+                                <Form.Item
+                                    label="详细地址"
+                                    name="address"
+                                    rules={[{ required: true, message: '请输入详细地址' }]}
+                                >
+                                    <Input placeholder="请输入详细地址（街道、门牌号）" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
+                                </Form.Item>
 
                                 {/* <!-- 酒店星级 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        酒店星级 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <div className="star-selector">
-                                        <label className="star-option">
-                                            <input type="radio" name="star" value="3" />
-                                            <span>⭐⭐⭐ 三星级</span>
-                                        </label>
-                                        <label className="star-option">
-                                            <input type="radio" name="star" value="4" />
-                                            <span>⭐⭐⭐⭐ 四星级</span>
-                                        </label>
-                                        <label className="star-option">
-                                            <input type="radio" name="star" value="5" />
-                                            <span>⭐⭐⭐⭐⭐ 五星级</span>
-                                        </label>
-                                    </div>
-                                </div>
+                                <Form.Item>
+                                    <Rate />
+                                    
+                                </Form.Item>
 
                                 {/* <!-- 房间数量 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        房间数量 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        className="input"
-                                        placeholder="请输入房间总数"
-                                        id="roomCount"
-                                        min="1"
-                                    />
-                                </div>
+                                <Form.Item
+                                    label="房间数量"
+                                    name="roomCount"
+                                    rules={[{ required: true, message: '请输入房间数量' }]}
+                                >
+                                    <Input placeholder="请输入房间总数" value={formData.roomCount} onChange={(e) => setFormData({ ...formData, roomCount: e.target.value })} />
+                                </Form.Item>
 
                                 {/* <!-- 起始价格 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        起始价格（元/晚） <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        className="input"
-                                        placeholder="请输入最低房价"
-                                        id="price"
-                                        min="0"
-                                    />
-                                </div>
-
+                                <Form.Item
+                                    label="起始价格（元/晚）"
+                                    name="price"
+                                    rules={[{ required: true, message: '请输入起始价格' }]}
+                                >
+                                    <Input placeholder="请输入最低房价" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} />
+                                </Form.Item>
                                 {/* <!-- 联系电话 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        联系电话 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        className="input"
-                                        placeholder="请输入酒店联系电话"
-                                        id="phone"
-                                    />
-                                </div>
+                                <Form.Item
+                                    label="联系电话"
+                                    name="phone"
+                                    rules={[{ required: true, message: '请输入联系电话' }]}
+                                >
+                                    <Input placeholder="请输入酒店联系电话" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                                </Form.Item>
 
                                 {/* <!-- 酒店简介 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">酒店简介</label>
-                                    <textarea
-                                        className="input"
-                                        rows="4"
-                                        placeholder="请输入酒店简介（选填）"
-                                        id="description"
-                                        style={{ resize: 'vertical', fontFamily: 'inherit' }}
-                                    ></textarea>
-                                </div>
+                                <Form.Item
+                                    label="酒店简介"
+                                    name="description"
+                                    rules={[{ required: true, message: '请输入酒店简介' }]}
+                                >
+                                    <Input placeholder="请输入酒店简介" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                                </Form.Item>
 
                                 {/* <!-- 设施标签 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">设施标签</label>
-                                    <div className="tag-selector">
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="免费停车" />
-                                            <span>免费停车</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="免费WiFi" />
-                                            <span>免费WiFi</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="有早餐" />
-                                            <span>有早餐</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="近地铁" />
-                                            <span>近地铁</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="游泳池" />
-                                            <span>游泳池</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="健身房" />
-                                            <span>健身房</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="会议室" />
-                                            <span>会议室</span>
-                                        </label>
-                                        <label className="tag-checkbox">
-                                            <input type="checkbox" value="接机服务" />
-                                            <span>接机服务</span>
-                                        </label>
-                                    </div>
-                                </div>
+                                
 
                                 {/* <!-- 酒店图片上传 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">酒店图片</label>
-                                    <div className="upload-area" onclick="alert('图片上传功能\n\n实际项目中这里会：\n1. 支持多图上传\n2. 图片预览\n3. 图片裁剪\n4. 上传到OSS云存储')">
-                                        <div className="upload-icon">📷</div>
+                                <Form.Item
+                                    label="酒店图片"
+                                    name="images"
+                                    rules={[{ required: true, message: '请上传酒店图片' }]}
+                                >
+                                    <Upload
+                                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                                        listType="picture-card"
+                                        maxCount={5}
+                                    >
                                         <p>点击上传酒店图片</p>
-                                        <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                                            支持 JPG、PNG 格式，最多上传10张
-                                        </p>
-                                    </div>
-                                </div>
+                                    </Upload>
+                                </Form.Item>
 
                                 {/* <!-- 营业执照上传 --> */}
-                                <div className="form-group">
-                                    <label className="form-label">
-                                        营业执照 <span style={{ color: 'var(--error-color)' }}>*</span>
-                                    </label>
-                                    <div className="upload-area" onclick="alert('营业执照上传功能')">
-                                        <div className="upload-icon">📄</div>
+                                <Form.Item
+                                    label="营业执照"
+                                    name="license"
+                                    rules={[{ required: true, message: '请上传营业执照' }]}
+                                >
+                                    <Upload
+                                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                                        listType="picture-card"
+                                        maxCount={5}
+                                    >
                                         <p>点击上传营业执照扫描件</p>
-                                        <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '8px' }}>
-                                            必须上传清晰的营业执照照片用于审核
-                                        </p>
-                                    </div>
-                                </div>
+                                    </Upload>
+                                </Form.Item>
 
                                 {/* <!-- 提交按钮 --> */}
                                 <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
-                                    <button type="button" className="btn btn-outline" style={{ width: '120px' }} onclick="handleCancel()">
+                                    <Button type="button" className="btn btn-outline" style={{ width: '120px' }} onclick="handleCancel()">
                                         取消
-                                    </button>
-                                    <button type="button" className="btn btn-primary" style={{ width: '120px' }} onclick="handleSubmit()">
+                                    </Button>
+                                    <Button type="button" className="btn btn-primary" style={{ width: '120px' }} onclick="handleSubmit()">
                                         提交审核
-                                    </button>
-                                    <button type="button" className="btn" style={{ width: '120px', background: '#F5F5F5' }} onclick="handleSaveDraft()">
+                                    </Button>
+                                    <Button type="button" className="btn" style={{ width: '120px', background: '#F5F5F5' }} onclick="handleSaveDraft()">
                                         保存草稿
-                                    </button>
+                                    </Button>
                                 </div>
 
-                            </form>
+                            </Form>
 
                         </div>
 
-                    </div>
+                    </Content>
 
                 </main>
 
