@@ -1,5 +1,7 @@
 import react, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import CtripHeader from '../../components/ctripheader';
+import CtripSider from '../../components/ctripsider';
 import { Avatar, Layout, Form, Button, Input, Rate, Upload } from 'antd'
 
 
@@ -51,38 +53,13 @@ const MerchantHotelForm = () => {
             <div className="admin-layout">
 
                 {/* <!-- 侧边栏 --> */}
-                <Sider className="admin-sidebar">
-                    <div className="sidebar-header">
-                        <h1 className="sidebar-logo">易宿酒店</h1>
-                        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>商户端</p>
-                    </div>
-                    <nav className="sidebar-menu">
-                        <div className="menu-item active">
-                            <span className="menu-icon">🏨</span>
-                            <span>我的酒店</span>   
-                        </div>
-                    </nav>
-                </Sider>
+                <CtripSider />
 
                 {/* <!-- 主内容区 -->   */}
                 <main className="admin-main">
 
                     {/* <!-- 顶部栏 --> */}
-                    <Header className="admin-header">
-                        <div className="header-left">
-                            <h2 className="page-title">酒店信息录入/编辑</h2>
-                        </div>
-                        <div className="header-right">
-                            <Avatar alt='用户头像' src=''/>
-                        </div>
-                        <div className="header-right">
-                            <div className="header-user" onclick="showUserMenu()">
-                                <div className="user-avatar">商</div>
-                                <span className="user-name">商户账号</span>
-                                <span>▼</span>
-                            </div>
-                        </div>
-                    </Header>
+                    <CtripHeader />
 
                     {/* <!-- 内容区 --> */}
                     <Content className="admin-content">

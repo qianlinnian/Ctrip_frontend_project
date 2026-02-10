@@ -51,6 +51,21 @@ class ApiService {
             throw error;
         }
     }
+
+
+    async fetchUserInfo() {
+        try {
+            const response = await fetch(`${MOCK_BASE_URL}/user/info`)
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            const data = await response.json();
+            return data
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
 }
 
 const apiService = new ApiService();
