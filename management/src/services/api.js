@@ -1,4 +1,5 @@
 const API_BASE_URL = 'http://localhost:8888/api';
+const MOCK_BASE_URL = 'https://m1.apifoxmock.com/m1/7818580-7566390-default'
 
 class ApiService {
     constructor() {
@@ -28,6 +29,23 @@ class ApiService {
             }
 
             return data;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+
+    async get(url) {
+        try {
+            const requestUrl = MOCK_BASE_URL + url;
+            const response = await fetch(requestUrl)
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            const data = await response.json()
+            console.log('data from get:', data)
+            return data;
+
         } catch (error) {
             console.error(error);
             throw error;

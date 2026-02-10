@@ -19,9 +19,15 @@ const router = createBrowserRouter([
         element: <Dashboard />,
     },
     {
-        path: '/merchant-hotel-form',
+        //酒店编辑页面
+        path: '/merchant-dashboard/edit/:id',
         element: <MerchantHotelForm />,
     },
+    {
+        //酒店新增页面
+        path: '/merchant-dashboard/new',
+        element: <MerchantHotelForm />,
+    }
 ]);
 
 function AppRouter() {

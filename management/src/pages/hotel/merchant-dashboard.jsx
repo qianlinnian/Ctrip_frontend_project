@@ -1,12 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {Avatar, Button, Table, Input, Space} from 'antd';
+import CtripSider from '../../components/ctripsider.jsx';
+import CtripHeader from '../../components/ctripheader.jsx';
+
+
+
+/*table item
+title: 表头显示的文本
+dataIndex: 指定从数据中的对应字段获取数据
+key:列多的唯一标识
+render:自定义渲染函数
+*/
+const columns = [
+    {
+        title: '酒店名称',
+        dataIndex: 'name',
+        key: 'name',
+    },
+    {
+        title: '城市',
+        dataIndex: 'city',
+        key: 'city',
+    },
+    {
+        title: '地址',
+        dataIndex: 'address',
+        key: 'address',
+    },
+    {
+        title: '星级',
+        dataIndex: 'star',
+        key: 'star',
+    },
+    {
+        title: '房间数',
+        dataIndex: 'roomCount',
+        key: 'roomCount',
+    },
+    {
+        title: '起始价',
+        dataIndex: 'lowestPrice',
+        key: 'lowestPrice',
+    },
+    {
+        title: '审核状态',
+        dataIndex: 'auditStatus',
+        key: 'auditStatus',
+    },
+    {
+        title: '发布状态',
+        dataIndex: 'publishStatus',
+        key: 'publishStatus',
+    },
+    {
+        title: '提交时间',
+        dataIndex: 'submitTime',
+        key: 'submitTime',
+    },
+    {
+        title: '操作',
+        dataIndex: 'action',
+        key: 'action',
+        //（_表示当前行对应字段的值，这里字段action不存在，所以不使用，record表示当前行数据）
+        render: (_, record) => (
+            <Space size="small">
+                <Button type="primary" onClick={() => handleEditHotel(record.id)}>编辑</Button>
+            </Space>
+        ),
+    },
+];
+
 
 
 
 
 const Dashboard = () => {
-
-
 
     const navigate = useNavigate();
     const [hotelList, setHotelList] = useState([]);
@@ -74,102 +143,36 @@ const Dashboard = () => {
             <div class="admin-layout">
 
                 {/* <!-- 侧边栏 --> */}
-                <aside class="admin-sidebar">
-                <div class="sidebar-header">
-                    <h1 class="sidebar-logo">易宿酒店</h1>
-                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>商户端</p>
-                </div>
-                <nav class="sidebar-menu">
-                    <div class="menu-item active">
-                    <span class="menu-icon">🏨</span>
-                    <span>我的酒店</span> 
-                    </div>
-                </nav>
-                </aside>
+                <CtripSider />
 
                 {/* <!-- 主内容区 --> */}
                 <main class="admin-main">
 
-                {/* <!-- 顶部栏 --> */}
-                <header class="admin-header">
-                    <div class="header-left">
-                    <h2 class="page-title">我的酒店</h2>
-                    </div>
-                    <div class="header-right">
-                    <div class="header-user" onclick="showUserMenu()">
-                        <button onClick={fetchHoltelList}>获取酒店列表</button>
-                        <div class="user-avatar">商户头像</div>
-                        <span class="user-name">商户账号</span>
-                        <span>▼</span>
-                    </div>
-                    </div>
-                </header>
+                    {/* <!-- 顶部栏 --> */}
+                    <CtripHeader />
+                    <Button type="primary" onClick={fetchHoltelList}>获取酒店列表</Button>
 
-                {/* <!-- 内容区 --> */}
-                <div class="admin-content">
+                    {/* <!-- 内容区 --> */}
+                    <div class="admin-content">
 
-                    {/* <!-- 操作栏 --> */}
-                    <div class="content-toolbar">
-                    <div class="toolbar-left">
-                        <div class="search-box">
-                        <span>🔍</span>
-                        <input type="text" placeholder="搜索酒店名称..." />
+                        {/* <!-- 操作栏 --> */}
+                        <div class="content-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-box">
+                            <span>🔍</span>
+                            <input type="text" placeholder="搜索酒店名称..." />
+                            </div>
                         </div>
-                    </div>
-                    <div class="toolbar-right">
-                        <button class="btn btn-primary btn-sm" onClick={handleNewHotel}>
-                        ➕ 新增酒店
-                        </button>
-                    </div>
-                    </div>
-
-                    {/* <!-- 数据表格 --> */}
-                    <div class="data-table">
-                        <table>
-                            <thead>
-                            <tr>
-                                <th>酒店名称</th>
-                                <th>城市</th>
-                                <th>地址</th>
-                                <th>星级</th>
-                                <th>房间数</th>
-                                <th>起始价</th>
-                                <th>审核状态</th>
-                                <th>发布状态</th>
-                                <th>提交时间</th>
-                                <th>操作</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                                {hotelList.map((item) => (
-                                    <tr key={item.id}>
-                                        <td>{item.name}</td>
-                                        <td>{item.city}</td>
-                                        <td>{item.address}</td>
-                                        <td>{item.level}</td>
-                                        <td>{item.roomCount}</td>
-                                        <td>{item.lowestPrice}</td>
-                                        <td>{item.auditStatus}</td>
-                                        <td>{item.publishStatus}</td>
-                                        <td>{item.submitTime}</td>
-                                        <td>
-                                            <button onClick={() => handleEditHotel(item.name)}>编辑</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-
-                    {/* <!-- 分页 --> */}
-                        <div class="pagination">
-                            <button class="page-btn">‹</button>
-                            <button class="page-btn active">1</button>
-                            <button class="page-btn">2</button>
-                            <button class="page-btn">›</button>
+                        <div class="toolbar-right">
+                            <button class="btn btn-primary btn-sm" onClick={handleNewHotel}>
+                            ➕ 新增酒店
+                            </button>
                         </div>
-                    </div>
+                        </div>
 
-                </div>
+                        {/* <!-- 数据表格 --> */}
+                        <Table columns={columns} dataSource={hotelList} />
+                    </div>
                 </main>
 
             </div>
