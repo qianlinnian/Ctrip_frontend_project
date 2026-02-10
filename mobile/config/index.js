@@ -6,8 +6,8 @@ import prodConfig from './prod'
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig(async (merge, { command, mode }) => {
   const baseConfig = {
-    projectName: 'mobile-new',
-    date: '2026-2-16',
+    projectName: 'mobile',
+    date: '2026-2-9',
     designWidth: 750,
     deviceRatio: {
       640: 2.34 / 2,
@@ -49,6 +49,13 @@ export default defineConfig(async (merge, { command, mode }) => {
           }
         }
       },
+      // 添加 sass-loader 配置，隐藏废弃警告
+      sassLoaderOption: {
+        sassOptions: {
+          quietDeps: true,  // 隐藏依赖包的废弃警告
+          silenceDeprecations: ['import', 'global-builtin']  // 隐藏特定的废弃警告
+        }
+      }
     },
     h5: {
       publicPath: '/',
@@ -73,6 +80,13 @@ export default defineConfig(async (merge, { command, mode }) => {
             namingPattern: 'module', // 转换模式，取值为 global/module
             generateScopedName: '[name]__[local]___[hash:base64:5]'
           }
+        }
+      },
+      // 添加 sass-loader 配置，隐藏废弃警告
+      sassLoaderOption: {
+        sassOptions: {
+          quietDeps: true,  // 隐藏依赖包的废弃警告
+          silenceDeprecations: ['import', 'global-builtin']  // 隐藏特定的废弃警告
         }
       }
     },
