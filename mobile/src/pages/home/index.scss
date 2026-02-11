@@ -223,8 +223,8 @@
     width: 100%;
     background-color: #fff;
     border-radius: 20px 20px 0 0;
-    max-height: 70vh;
-    overflow: hidden;
+    max-height: 80vh;
+    overflow-y: auto;
   }
 
   // 选择器头部
@@ -245,10 +245,13 @@
   // 目的地列表
   .destination-list {
     padding: 20px;
-    max-height: 60vh;
+    max-height: calc(70vh - 360px);
     overflow-y: auto;
 
     .destination-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       padding: 30px 20px;
       font-size: 28px;
       color: #333;
@@ -257,6 +260,129 @@
       &:active {
         background-color: #f5f5f5;
       }
+
+      .destination-item-name {
+        font-size: 28px;
+        color: #333;
+      }
+
+      .destination-item-district {
+        font-size: 24px;
+        color: #999;
+      }
+    }
+  }
+
+  // 目的地搜索框
+  .destination-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 40px;
+    padding: 18px 24px;
+    background-color: #f7f7f7;
+    border-radius: 40px;
+
+    .destination-search-input {
+      flex: 1;
+      font-size: 28px;
+      color: #333;
+      background: transparent;
+      height: 40px;
+    }
+
+    .destination-search-clear {
+      padding: 0 4px;
+    }
+  }
+
+  // 热门城市容器
+  .destination-hot {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  // 热门城市网格（胶囊标签）
+  .destination-hot-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 24px 40px;
+    border-bottom: 1px solid #f0f0f0;
+    flex-shrink: 0;
+
+    .destination-hot-item {
+      padding: 12px 28px;
+      background-color: #f5f5f5;
+      border-radius: 32px;
+      font-size: 26px;
+      color: #333;
+
+      &:active {
+        background-color: #e8f4ff;
+        color: #0086F6;
+      }
+    }
+  }
+
+  // 字母分组标题
+  .destination-letter-header {
+    padding: 16px 20px 8px;
+    background-color: #f7f7f7;
+
+    .destination-letter-text {
+      font-size: 24px;
+      color: #999;
+      font-weight: bold;
+    }
+  }
+
+  // 国内/海外 Tab 条
+  .destination-tab-bar {
+    display: flex;
+    border-bottom: 2px solid #f0f0f0;
+    padding: 0 40px;
+    flex-shrink: 0;
+
+    .destination-tab-item {
+      padding: 20px 24px;
+      position: relative;
+
+      .destination-tab-text {
+        font-size: 28px;
+        color: #999;
+      }
+
+      &.active {
+        .destination-tab-text {
+          color: #0086F6;
+          font-weight: bold;
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -2px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 48px;
+          height: 4px;
+          background-color: #0086F6;
+          border-radius: 2px;
+        }
+      }
+    }
+  }
+
+  // 搜索空/loading 提示
+  .destination-empty {
+    padding: 60px 40px;
+    text-align: center;
+
+    .destination-empty-text {
+      font-size: 28px;
+      color: #999;
     }
   }
 
@@ -311,6 +437,47 @@
           color: #333;
           min-width: 60px;
           text-align: center;
+        }
+      }
+    }
+
+    // 星级/价格选择区
+    .picker-section {
+      padding: 24px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      .picker-label {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 20px;
+        display: block;
+      }
+
+      .picker-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+
+        .picker-chip {
+          padding: 12px 28px;
+          border-radius: 32px;
+          background-color: #f5f5f5;
+          border: 2px solid transparent;
+
+          &.active {
+            background-color: #e8f4ff;
+            border-color: #0086F6;
+
+            .picker-chip-text {
+              color: #0086F6;
+              font-weight: bold;
+            }
+          }
+
+          .picker-chip-text {
+            font-size: 26px;
+            color: #333;
+          }
         }
       }
     }

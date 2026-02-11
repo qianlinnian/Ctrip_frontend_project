@@ -1,26 +1,155 @@
-import { View, Text, Input, Button, Picker, Swiper, SwiperItem, Image } from '@tarojs/components'
-import { useState, useEffect } from 'react'
+import { View, Text, Input, Button, Swiper, SwiperItem, Image } from '@tarojs/components'
+import { useState, useRef } from 'react'
 import Taro from '@tarojs/taro'
 import { AtIcon } from 'taro-ui'
 import { convertLocationToCity } from '../../utils/location'
+import CalendarPicker from '../../components/CalendarPicker'
+import PriceRangeSlider from '../../components/PriceRangeSlider'
 import './index.scss'
+
+// 热门城市数据
+const HOT_DESTINATIONS = {
+  domestic: ['上海', '北京', '广州', '深圳', '杭州', '成都', '重庆', '南京', '西安', '苏州', '厦门', '三亚'],
+  overseas: ['东京', '大阪', '曼谷', '新加坡', '首尔', '巴黎', '伦敦', '纽约', '迪拜', '悉尼', '吉隆坡', '巴厘岛']
+}
+
+// 完整城市库，含拼音首字母和国内/海外标记
+const ALL_CITIES = [
+  // 国内
+  { name: '北京', pinyin: 'B', type: 'domestic' },
+  { name: '成都', pinyin: 'C', type: 'domestic' },
+  { name: '常州', pinyin: 'C', type: 'domestic' },
+  { name: '大连', pinyin: 'D', type: 'domestic' },
+  { name: '东莞', pinyin: 'D', type: 'domestic' },
+  { name: '福州', pinyin: 'F', type: 'domestic' },
+  { name: '佛山', pinyin: 'F', type: 'domestic' },
+  { name: '广州', pinyin: 'G', type: 'domestic' },
+  { name: '贵阳', pinyin: 'G', type: 'domestic' },
+  { name: '哈尔滨', pinyin: 'H', type: 'domestic' },
+  { name: '杭州', pinyin: 'H', type: 'domestic' },
+  { name: '海口', pinyin: 'H', type: 'domestic' },
+  { name: '合肥', pinyin: 'H', type: 'domestic' },
+  { name: '惠州', pinyin: 'H', type: 'domestic' },
+  { name: '呼和浩特', pinyin: 'H', type: 'domestic' },
+  { name: '济南', pinyin: 'J', type: 'domestic' },
+  { name: '昆明', pinyin: 'K', type: 'domestic' },
+  { name: '兰州', pinyin: 'L', type: 'domestic' },
+  { name: '拉萨', pinyin: 'L', type: 'domestic' },
+  { name: '南京', pinyin: 'N', type: 'domestic' },
+  { name: '南宁', pinyin: 'N', type: 'domestic' },
+  { name: '南昌', pinyin: 'N', type: 'domestic' },
+  { name: '宁波', pinyin: 'N', type: 'domestic' },
+  { name: '青岛', pinyin: 'Q', type: 'domestic' },
+  { name: '重庆', pinyin: 'Q', type: 'domestic' },
+  { name: '上海', pinyin: 'S', type: 'domestic' },
+  { name: '深圳', pinyin: 'S', type: 'domestic' },
+  { name: '沈阳', pinyin: 'S', type: 'domestic' },
+  { name: '石家庄', pinyin: 'S', type: 'domestic' },
+  { name: '苏州', pinyin: 'S', type: 'domestic' },
+  { name: '三亚', pinyin: 'S', type: 'domestic' },
+  { name: '天津', pinyin: 'T', type: 'domestic' },
+  { name: '太原', pinyin: 'T', type: 'domestic' },
+  { name: '温州', pinyin: 'W', type: 'domestic' },
+  { name: '武汉', pinyin: 'W', type: 'domestic' },
+  { name: '无锡', pinyin: 'W', type: 'domestic' },
+  { name: '乌鲁木齐', pinyin: 'W', type: 'domestic' },
+  { name: '厦门', pinyin: 'X', type: 'domestic' },
+  { name: '西安', pinyin: 'X', type: 'domestic' },
+  { name: '西宁', pinyin: 'X', type: 'domestic' },
+  { name: '银川', pinyin: 'Y', type: 'domestic' },
+  { name: '郑州', pinyin: 'Z', type: 'domestic' },
+  { name: '珠海', pinyin: 'Z', type: 'domestic' },
+  { name: '长春', pinyin: 'Z', type: 'domestic' },
+  { name: '长沙', pinyin: 'Z', type: 'domestic' },
+  { name: '中山', pinyin: 'Z', type: 'domestic' },
+  // 海外
+  { name: '阿姆斯特丹', pinyin: 'A', type: 'overseas' },
+  { name: '奥克兰', pinyin: 'A', type: 'overseas' },
+  { name: '巴黎', pinyin: 'B', type: 'overseas' },
+  { name: '巴塞罗那', pinyin: 'B', type: 'overseas' },
+  { name: '巴厘岛', pinyin: 'B', type: 'overseas' },
+  { name: '柏林', pinyin: 'B', type: 'overseas' },
+  { name: '布拉格', pinyin: 'B', type: 'overseas' },
+  { name: '布达佩斯', pinyin: 'B', type: 'overseas' },
+  { name: '釜山', pinyin: 'F', type: 'overseas' },
+  { name: '多伦多', pinyin: 'D', type: 'overseas' },
+  { name: '多哈', pinyin: 'D', type: 'overseas' },
+  { name: '迪拜', pinyin: 'D', type: 'overseas' },
+  { name: '芝加哥', pinyin: 'Z', type: 'overseas' },
+  { name: '吉隆坡', pinyin: 'J', type: 'overseas' },
+  { name: '济州岛', pinyin: 'J', type: 'overseas' },
+  { name: '京都', pinyin: 'J', type: 'overseas' },
+  { name: '开罗', pinyin: 'K', type: 'overseas' },
+  { name: '开普敦', pinyin: 'K', type: 'overseas' },
+  { name: '伦敦', pinyin: 'L', type: 'overseas' },
+  { name: '洛杉矶', pinyin: 'L', type: 'overseas' },
+  { name: '拉斯维加斯', pinyin: 'L', type: 'overseas' },
+  { name: '马尼拉', pinyin: 'M', type: 'overseas' },
+  { name: '曼谷', pinyin: 'M', type: 'overseas' },
+  { name: '迈阿密', pinyin: 'M', type: 'overseas' },
+  { name: '墨尔本', pinyin: 'M', type: 'overseas' },
+  { name: '莫斯科', pinyin: 'M', type: 'overseas' },
+  { name: '纽约', pinyin: 'N', type: 'overseas' },
+  { name: '普吉岛', pinyin: 'P', type: 'overseas' },
+  { name: '清迈', pinyin: 'Q', type: 'overseas' },
+  { name: '罗马', pinyin: 'L', type: 'overseas' },
+  { name: '首尔', pinyin: 'S', type: 'overseas' },
+  { name: '新加坡', pinyin: 'X', type: 'overseas' },
+  { name: '悉尼', pinyin: 'X', type: 'overseas' },
+  { name: '旧金山', pinyin: 'J', type: 'overseas' },
+  { name: '雅加达', pinyin: 'Y', type: 'overseas' },
+  { name: '伊斯坦布尔', pinyin: 'Y', type: 'overseas' },
+  { name: '温哥华', pinyin: 'W', type: 'overseas' },
+  { name: '维也纳', pinyin: 'W', type: 'overseas' },
+  { name: '大阪', pinyin: 'D', type: 'overseas' },
+  { name: '东京', pinyin: 'D', type: 'overseas' },
+]
+
+// 按拼音首字母分组（用于完整城市库展示）
+const CITIES_BY_LETTER = ALL_CITIES.reduce((acc, city) => {
+  if (!acc[city.pinyin]) acc[city.pinyin] = []
+  acc[city.pinyin].push(city)
+  return acc
+}, {})
+const SORTED_LETTERS = Object.keys(CITIES_BY_LETTER).sort()
+
+// 生成今天/明天的日期字符串
+function getTodayStr() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+function getTomorrowStr() {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 export default function Home() {
   // 搜索参数状态
   const [searchParams, setSearchParams] = useState({
     destination: '上海',
-    checkInDate: '2026-01-09',
-    checkOutDate: '2026-01-10',
+    checkInDate: getTodayStr(),
+    checkOutDate: getTomorrowStr(),
     guests: 2,
     rooms: 1,
     nights: 1,
-    keyword: ''
+    keyword: '',
+    starLevel: 0,   // 0=不限, 2~5=对应星级
+    priceMin: -1,   // -1=不限, 否则最低价
+    priceMax: -1    // -1=不限, 否则最高价（priceMax=0 表示 1000+ 无上限）
   })
   const [currentLocation, setCurrentLocation] = useState('定位中...') // 当前定位
   const [isLocating, setIsLocating] = useState(false) // 是否正在定位
 
   // 控制选择器显示
   const [showDestinationPicker, setShowDestinationPicker] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+
+  // 目的地搜索相关
+  const [destinationTab, setDestinationTab] = useState(0) // 0=国内 1=海外
+  const [destinationKeyword, setDestinationKeyword] = useState('')
+  const [searchSuggestions, setSearchSuggestions] = useState([])
+  const debounceTimerRef = useRef(null)
   const [showGuestRoomPicker, setShowGuestRoomPicker] = useState(false)
 
   // Banner 数据
@@ -97,19 +226,17 @@ export default function Home() {
   const tabs = ['国内', '海外', '特价房', '民宿']
   const [activeTab, setActiveTab] = useState(0)
 
-  // 目的地列表
-  const destinationList = [
-    '上海',
-    '北京',
-    '广州',
-    '深圳',
-    '杭州',
-    '成都',
-    '重庆',
-    '南京',
-    '西安',
-    '苏州'
-  ]
+  // 切换主 Tab，同时更新默认目的地
+  const handleTabChange = (index) => {
+    setActiveTab(index)
+    if (index === 1 && activeTab !== 1) {
+      // 切到海外：默认东京
+      setSearchParams(prev => ({ ...prev, destination: '东京' }))
+    } else if (index === 0 && activeTab !== 0) {
+      // 切回国内：默认上海
+      setSearchParams(prev => ({ ...prev, destination: '上海' }))
+    }
+  }
 
   // 快捷标签
   const quickTags = ['免费早餐', '上海环球影城', '上海迪士尼乐园']
@@ -124,42 +251,53 @@ export default function Home() {
     return { month, day, weekday }
   }
 
-  // 计算天数
-  const calculateNights = (startDate, endDate) => {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
-    const diffTime = Math.abs(end - start)
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
+  // 本地城市搜索（不依赖网络）
+  const searchDestination = (keyword) => {
+    const kw = keyword.trim()
+    if (!kw) { setSearchSuggestions([]); return }
+    const results = ALL_CITIES.filter(city => city.name.includes(kw)).slice(0, 8)
+    setSearchSuggestions(results)
+  }
+
+  // 搜索框输入处理（防抖 200ms）
+  const handleDestinationKeywordChange = (e) => {
+    const keyword = e.detail.value
+    setDestinationKeyword(keyword)
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    if (!keyword.trim()) {
+      setSearchSuggestions([])
+      return
+    }
+    debounceTimerRef.current = setTimeout(() => searchDestination(keyword), 200)
+  }
+
+  // 关闭目的地选择器并清理搜索状态
+  const handleCloseDestinationPicker = () => {
+    setShowDestinationPicker(false)
+    setDestinationKeyword('')
+    setSearchSuggestions([])
   }
 
   // 处理目的地选择
-  const handleDestinationSelect = (destination) => {
-    setSearchParams({
-      ...searchParams,
-      destination: destination
-    })
+  const handleDestinationSelect = (destination, type) => {
+    setSearchParams({ ...searchParams, destination })
+    // 根据城市类型同步外部 Tab（0=国内, 1=海外）
+    if (type === 'overseas') setActiveTab(1)
+    else if (type === 'domestic') setActiveTab(0)
     setShowDestinationPicker(false)
+    setDestinationKeyword('')
+    setSearchSuggestions([])
   }
 
-  // 处理入住日期变化
-  const handleCheckInDateChange = (e) => {
-    const newCheckInDate = e.detail.value
+  // 处理日历确认
+  const handleCalendarConfirm = (checkIn, checkOut, nights) => {
     setSearchParams({
       ...searchParams,
-      checkInDate: newCheckInDate,
-      nights: calculateNights(newCheckInDate, searchParams.checkOutDate)
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      nights
     })
-  }
-
-  // 处理离店日期变化
-  const handleCheckOutDateChange = (e) => {
-    const newCheckOutDate = e.detail.value
-    setSearchParams({
-      ...searchParams,
-      checkOutDate: newCheckOutDate,
-      nights: calculateNights(searchParams.checkInDate, newCheckOutDate)
-    })
+    setShowCalendar(false)
   }
 
   // 人数/房间数操作
@@ -220,7 +358,7 @@ export default function Home() {
             <View
               key={index}
               className={`tab-item ${activeTab === index ? 'active' : ''}`}
-              onClick={() => setActiveTab(index)}
+              onClick={() => handleTabChange(index)}
             >
               <Text className="tab-text">{tab}</Text>
             </View>
@@ -262,34 +400,30 @@ export default function Home() {
         </View>
 
         {/* 日期选择 */}
-        <View className="date-row">
-          <Picker mode="date" value={searchParams.checkInDate} onChange={handleCheckInDateChange}>
-            <View className="date-item">
-              <Text className="date-number">
-                {checkInDateObj.month}月{checkInDateObj.day}日
-              </Text>
-              <Text className="date-week">{checkInDateObj.weekday}</Text>
-            </View>
-          </Picker>
+        <View className="date-row" onClick={() => setShowCalendar(true)}>
+          <View className="date-item">
+            <Text className="date-number">
+              {checkInDateObj.month}月{checkInDateObj.day}日
+            </Text>
+            <Text className="date-week">{checkInDateObj.weekday}</Text>
+          </View>
 
           <View className="date-divider">
             <Text className="nights-text">共{searchParams.nights}晚</Text>
           </View>
 
-          <Picker mode="date" value={searchParams.checkOutDate} onChange={handleCheckOutDateChange}>
-            <View className="date-item">
-              <Text className="date-number">
-                {checkOutDateObj.month}月{checkOutDateObj.day}日
-              </Text>
-              <Text className="date-week">{checkOutDateObj.weekday}</Text>
-            </View>
-          </Picker>
+          <View className="date-item">
+            <Text className="date-number">
+              {checkOutDateObj.month}月{checkOutDateObj.day}日
+            </Text>
+            <Text className="date-week">{checkOutDateObj.weekday}</Text>
+          </View>
         </View>
 
         {/* 入住人数/房间数 */}
         <View className="guest-room-row" onClick={() => setShowGuestRoomPicker(true)}>
           <Text className="guest-room-text">
-            {searchParams.rooms}间{searchParams.guests}人，星级不限，不限入住人数，通宵订"今天夜"
+            {searchParams.rooms}间房 · {searchParams.guests}人 · {searchParams.starLevel === 0 ? '星级不限' : `${searchParams.starLevel}星`} · {searchParams.priceMin === -1 && searchParams.priceMax === -1 ? '价格不限' : searchParams.priceMax === -1 ? `¥${searchParams.priceMin} 以上` : `¥${searchParams.priceMin} - ¥${searchParams.priceMax}`}
           </Text>
         </View>
 
@@ -310,28 +444,118 @@ export default function Home() {
 
       {/* 目的地选择器 */}
       {showDestinationPicker && (
-        <View className="picker-mask" onClick={() => setShowDestinationPicker(false)}>
+        <View className="picker-mask" onClick={handleCloseDestinationPicker}>
           <View className="picker-content" onClick={(e) => e.stopPropagation()}>
             <View className="picker-header">
               <Text className="picker-title">选择目的地</Text>
-              <View onClick={() => setShowDestinationPicker(false)}>
+              <View onClick={handleCloseDestinationPicker}>
                 <AtIcon value='close' size='24' color='#999' />
               </View>
             </View>
-            <View className="destination-list">
-              {destinationList.map((destination, index) => (
-                <View
-                  key={index}
-                  className="destination-item"
-                  onClick={() => handleDestinationSelect(destination)}
-                >
-                  <Text>{destination}</Text>
+
+            {/* 搜索框 */}
+            <View className="destination-search-bar">
+              <AtIcon value='search' size='18' color='#999' />
+              <Input
+                className="destination-search-input"
+                placeholder="搜索城市"
+                value={destinationKeyword}
+                onInput={handleDestinationKeywordChange}
+              />
+              {destinationKeyword.length > 0 && (
+                <View className="destination-search-clear" onClick={() => {
+                  setDestinationKeyword('')
+                  setSearchSuggestions([])
+                }}>
+                  <AtIcon value='close-circle' size='18' color='#ccc' />
                 </View>
-              ))}
+              )}
             </View>
+
+            {destinationKeyword.trim() ? (
+              /* 搜索结果 */
+              <View className="destination-list">
+                {searchSuggestions.length === 0 && (
+                  <View className="destination-empty">
+                    <Text className="destination-empty-text">未找到相关城市</Text>
+                  </View>
+                )}
+                {searchSuggestions.map((city, index) => (
+                  <View
+                    key={index}
+                    className="destination-item"
+                    onClick={() => handleDestinationSelect(city.name, city.type)}
+                  >
+                    <Text className="destination-item-name">{city.name}</Text>
+                    <Text className="destination-item-district">{city.type === 'overseas' ? '海外' : '国内'}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              /* 热门城市 + 完整城市库 */
+              <View className="destination-hot">
+                <View className="destination-tab-bar">
+                  <View
+                    className={`destination-tab-item ${destinationTab === 0 ? 'active' : ''}`}
+                    onClick={() => setDestinationTab(0)}
+                  >
+                    <Text className="destination-tab-text">国内热门</Text>
+                  </View>
+                  <View
+                    className={`destination-tab-item ${destinationTab === 1 ? 'active' : ''}`}
+                    onClick={() => setDestinationTab(1)}
+                  >
+                    <Text className="destination-tab-text">海外热门</Text>
+                  </View>
+                </View>
+
+                {/* 热门城市 */}
+                <View className="destination-hot-grid">
+                  {(destinationTab === 0 ? HOT_DESTINATIONS.domestic : HOT_DESTINATIONS.overseas).map((city, index) => (
+                    <View
+                      key={index}
+                      className="destination-hot-item"
+                      onClick={() => handleDestinationSelect(city, destinationTab === 0 ? 'domestic' : 'overseas')}
+                    >
+                      <Text>{city}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* 完整城市库，按首字母分组 */}
+                <View className="destination-list">
+                  {SORTED_LETTERS.map(letter => (
+                    <View key={letter}>
+                      <View className="destination-letter-header">
+                        <Text className="destination-letter-text">{letter}</Text>
+                      </View>
+                      {CITIES_BY_LETTER[letter].map((city, index) => (
+                        <View
+                          key={index}
+                          className="destination-item"
+                          onClick={() => handleDestinationSelect(city.name, city.type)}
+                        >
+                          <Text className="destination-item-name">{city.name}</Text>
+                          <Text className="destination-item-district">{city.type === 'overseas' ? '海外' : '国内'}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         </View>
       )}
+
+      {/* 日历选择器 */}
+      <CalendarPicker
+        visible={showCalendar}
+        checkInDate={searchParams.checkInDate}
+        checkOutDate={searchParams.checkOutDate}
+        onConfirm={handleCalendarConfirm}
+        onClose={() => setShowCalendar(false)}
+      />
 
       {/* 人间夜选择器 */}
       {showGuestRoomPicker && (
@@ -344,49 +568,50 @@ export default function Home() {
               </View>
             </View>
             <View className="guest-room-picker">
+              {/* 人数 */}
               <View className="picker-row-item">
                 <Text className="picker-label">入住人数</Text>
                 <View className="counter">
-                  <Button
-                    className="counter-btn"
-                    onClick={decreaseGuests}
-                    disabled={searchParams.guests <= 1}
-                  >
-                    -
-                  </Button>
+                  <Button className="counter-btn" onClick={decreaseGuests} disabled={searchParams.guests <= 1}>-</Button>
                   <Text className="counter-value">{searchParams.guests}</Text>
-                  <Button
-                    className="counter-btn"
-                    onClick={increaseGuests}
-                    disabled={searchParams.guests >= 8}
-                  >
-                    +
-                  </Button>
+                  <Button className="counter-btn" onClick={increaseGuests} disabled={searchParams.guests >= 8}>+</Button>
                 </View>
               </View>
+              {/* 房间 */}
               <View className="picker-row-item">
                 <Text className="picker-label">房间数量</Text>
                 <View className="counter">
-                  <Button
-                    className="counter-btn"
-                    onClick={decreaseRooms}
-                    disabled={searchParams.rooms <= 1}
-                  >
-                    -
-                  </Button>
+                  <Button className="counter-btn" onClick={decreaseRooms} disabled={searchParams.rooms <= 1}>-</Button>
                   <Text className="counter-value">{searchParams.rooms}</Text>
-                  <Button
-                    className="counter-btn"
-                    onClick={increaseRooms}
-                    disabled={searchParams.rooms >= 5}
-                  >
-                    +
-                  </Button>
+                  <Button className="counter-btn" onClick={increaseRooms} disabled={searchParams.rooms >= 5}>+</Button>
                 </View>
               </View>
-              <View className="picker-row-item">
-                <Text className="picker-label">入住天数</Text>
-                <Text className="counter-value">{searchParams.nights} 晚</Text>
+              {/* 星级 */}
+              <View className="picker-section">
+                <Text className="picker-label">酒店星级</Text>
+                <View className="picker-chips">
+                  {[{ label: '不限', value: 0 }, { label: '2星', value: 2 }, { label: '3星', value: 3 }, { label: '4星', value: 4 }, { label: '5星', value: 5 }].map(item => (
+                    <View
+                      key={item.value}
+                      className={`picker-chip ${searchParams.starLevel === item.value ? 'active' : ''}`}
+                      onClick={() => setSearchParams({ ...searchParams, starLevel: item.value })}
+                    >
+                      <Text className="picker-chip-text">{item.label}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              {/* 价格区间 */}
+              <View className="picker-section">
+                <Text className="picker-label">价格区间</Text>
+                <PriceRangeSlider
+                  min={0}
+                  max={2000}
+                  step={50}
+                  valueMin={searchParams.priceMin === -1 ? 0 : searchParams.priceMin}
+                  valueMax={searchParams.priceMax === -1 ? 2000 : searchParams.priceMax}
+                  onChange={(mn, mx) => setSearchParams({ ...searchParams, priceMin: mn, priceMax: mx })}
+                />
               </View>
               <Button className="confirm-btn" onClick={() => setShowGuestRoomPicker(false)}>
                 确定

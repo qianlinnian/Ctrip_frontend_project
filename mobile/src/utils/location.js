@@ -1,6 +1,7 @@
 /**
  * 地理定位工具函数 - 支持 H5 和微信小程序
  */
+import Taro from '@tarojs/taro'
 
 // 根据环境选择对应的 Key
 const getAmapKey = () => {
@@ -32,8 +33,8 @@ export async function convertLocationToCity(longitude, latitude) {
     
     console.log('调用高德地图API:', url.replace(AMAP_KEY, '***'))
     
-    const response = await fetch(url)
-    const data = await response.json()
+    const response = await Taro.request({ url, method: 'GET' })
+    const data = response.data
     
     console.log('高德地图返回:', data)
     
