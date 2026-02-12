@@ -3,6 +3,7 @@ import Login from '../pages//login/login.jsx';
 import Register from "../pages/login/register.jsx";
 import Dashboard from "../pages/hotel/merchant-dashboard.jsx";
 import MerchantHotelForm from "../pages/hotel/merchant-hotel-form.jsx";
+import AuditPage from "../pages/audit/audit.jsx";
 
 
 const router = createBrowserRouter([
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
         //酒店新增页面
         path: '/merchant-dashboard/new',
         element: <MerchantHotelForm />,
+    },
+    {
+        path: '/audit',
+        element: <AuditPage />,
     }
 ]);
 
