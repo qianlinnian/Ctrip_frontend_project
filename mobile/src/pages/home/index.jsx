@@ -322,10 +322,12 @@ export default function Home() {
     }
   }
 
-  // 处理查询
+  // 处理查询，跳转到列表页
   const handleSearch = () => {
-    console.log('搜索参数:', searchParams)
-    // TODO: 跳转到列表页
+    const p = searchParams
+    Taro.navigateTo({
+      url: `/pages/list/index?destination=${encodeURIComponent(p.destination)}&checkInDate=${p.checkInDate}&checkOutDate=${p.checkOutDate}&nights=${p.nights}&guests=${p.guests}&rooms=${p.rooms}&starLevel=${p.starLevel}&priceMin=${p.priceMin}&priceMax=${p.priceMax}`
+    })
   }
 
   const checkInDateObj = formatDateDisplay(searchParams.checkInDate)

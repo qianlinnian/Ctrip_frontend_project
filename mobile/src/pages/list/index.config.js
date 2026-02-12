@@ -1,0 +1,5 @@
+export default {
+  navigationBarTitleText: '酒店列表',
+  navigationBarBackgroundColor: '#ffffff',
+  navigationBarTextStyle: 'black',
+}
