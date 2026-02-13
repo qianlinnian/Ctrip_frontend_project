@@ -4,6 +4,9 @@ import Register from "../pages/login/register.jsx";
 import Dashboard from "../pages/hotel/merchant-dashboard.jsx";
 import MerchantHotelForm from "../pages/hotel/merchant-hotel-form.jsx";
 import AuditPage from "../pages/audit/audit.jsx";
+import RoomManage from "../pages/hotel/room-manage.jsx";
+import HotelManage from "../pages/hotel/hotel-manage.jsx";
+
 
 
 const router = createBrowserRouter([
@@ -20,19 +23,15 @@ const router = createBrowserRouter([
         element: <Dashboard />,
     },
     {
-        //酒店编辑页面
-        path: '/merchant-dashboard/edit/:id',
-        element: <MerchantHotelForm />,
-    },
-    {
-        //酒店新增页面
-        path: '/merchant-dashboard/new',
-        element: <MerchantHotelForm />,
-    },
-    {
         path: '/audit',
         element: <AuditPage />,
-    }
+    },
+    //酒店管理
+    {
+        path: '/merchant-dashboard/hotel-manage',
+        element: <HotelManage />,
+    },
+        
 ]);
 
 function AppRouter() {

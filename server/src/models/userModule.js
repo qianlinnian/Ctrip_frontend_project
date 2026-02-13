@@ -16,7 +16,13 @@ const findUserByUsername = async (username) => {
 
 
 const createUser = async (username, password) => {
-    const [rows] = await pool.query('INSERT INTO user (username, password) VALUES (?, ?)', [username, password])
-    return rows[0]
+    try {
+        console.log("createUser:", username, password)
+        const [rows] = await pool.query('INSERT INTO user (username, password) VALUES (?, ?)', [username, password])
+        return rows[0]
+    } catch (error) {
+        console.log("error", error)
+    }
+    
 }
 module.exports = { findUserByUsername, createUser }

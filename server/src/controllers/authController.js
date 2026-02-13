@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const { findUserByUsername } = require('../models/userModule')
+const { findUserByUsername, createUser } = require('../models/userModule')
 const { generateToken } = require('../utils/jwtUtil')
 
 
@@ -40,8 +40,8 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
     try{
-        const {username, password, email} = req.body
-        
+        const {username, password} = req.body
+        console.log('register:',req.body)
         //检查用户是否存在
         const user = await findUserByUsername(username)
         if(user) {
@@ -50,13 +50,14 @@ exports.register = async (req, res) => {
 
         //加密密码
         const encryptedPassword = await bcrypt.hash(password, 10)
-        const newUser = await createUser(username, encryptedPassword, email)
+        console.log(encryptedPassword)
+        const _ = await createUser(username, encryptedPassword)
         res.json({
             success: true,
-            message: '注册成功'
+            message: 'register success'
         })
 
     } catch (error) {
-        res.status(500).json({ message: '注册失败' })
+        res.status(500).json({ message: 'register failed',error })
     }
 }

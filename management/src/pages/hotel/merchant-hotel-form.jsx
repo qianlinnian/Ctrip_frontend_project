@@ -50,20 +50,6 @@ const MerchantHotelForm = () => {
 
     return (
         <>
-            <div className="admin-layout">
-
-                {/* <!-- 侧边栏 --> */}
-                <CtripSider />
-
-                {/* <!-- 主内容区 -->   */}
-                <main className="admin-main">
-
-                    {/* <!-- 顶部栏 --> */}
-                    <CtripHeader />
-
-                    {/* <!-- 内容区 --> */}
-                    <Content className="admin-content">
-
                         {/* <!-- 表单卡片 --> */}
                         <div className="card" style={{ maxWidth: '900px', margin: '0 auto' }}>
 
@@ -171,28 +157,11 @@ const MerchantHotelForm = () => {
                                     </Upload>
                                 </Form.Item>
 
-                                {/* <!-- 提交按钮 --> */}
-                                <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
-                                    <Button type="button" className="btn btn-outline" style={{ width: '120px' }} onclick="handleCancel()">
-                                        取消
-                                    </Button>
-                                    <Button type="button" className="btn btn-primary" style={{ width: '120px' }} onclick="handleSubmit()">
-                                        提交审核
-                                    </Button>
-                                    <Button type="button" className="btn" style={{ width: '120px', background: '#F5F5F5' }} onclick="handleSaveDraft()">
-                                        保存草稿
-                                    </Button>
-                                </div>
+                                
 
                             </Form>
 
                         </div>
-
-                    </Content>
-
-                </main>
-
-            </div>
         </>
     )
 };
