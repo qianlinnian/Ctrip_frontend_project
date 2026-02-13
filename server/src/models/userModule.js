@@ -10,19 +10,37 @@ rows => 查询结果
 fields => 字段信息
 */ 
 const findUserByUsername = async (username) => {
-    const [rows] = await pool.query('SELECT * FROM user WHERE username = ?', [username])
+    console.log("findUserByUsername:", username)
+    try {
+        const [rows] = await pool.execute('SELECT * FROM user WHERE username = ?', [username])
+        return rows[0]
+    } catch (error) {
+        console.log("error", error)
+    }
+}
+
+const findUserByPhone = async (phone) => {
+    console.log("findUserByPhone:", phone)
+    const [rows] = await pool.execute('SELECT * FROM user WHERE phone = ?', [phone])
+    return rows[0]
+}
+
+const findUserByEmail = async (email) => {
+    
+    console.log("findUserByEmail:", email)
+    const [rows] = await pool.execute('SELECT * FROM user WHERE email = ?', [email])
     return rows[0]
 }
 
 
-const createUser = async (username, password) => {
+const createUser = async (username, name, phone, email, password) => {
     try {
-        console.log("createUser:", username, password)
-        const [rows] = await pool.query('INSERT INTO user (username, password) VALUES (?, ?)', [username, password])
+        console.log("createUser:", username, name, phone, email, password)
+        const [rows] = await pool.execute('INSERT INTO user (username, name, phone, email, password) VALUES (?, ?, ?, ?, ?)', [username, name, phone, email, password])
         return rows[0]
     } catch (error) {
         console.log("error", error)
     }
     
 }
-module.exports = { findUserByUsername, createUser }
+module.exports = { findUserByUsername, createUser, findUserByPhone, findUserByEmail }
