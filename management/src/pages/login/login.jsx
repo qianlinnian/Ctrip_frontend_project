@@ -28,8 +28,12 @@ const Login = () => {
         //登入成功
       if (response.ok) {
         const data =  await response.json()
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        console.log('data', data)
+        localStorage.setItem('token', data.data.token);
+        console.log('token', data.data.token)
+        localStorage.setItem('username', data.data.user.username);
+        localStorage.setItem('name', data.data.user.name);
+        console.log('user', data.data.user)
 
         //重定向到主页
         navigate('/merchant-dashboard');

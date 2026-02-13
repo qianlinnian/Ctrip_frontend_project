@@ -1,29 +1,22 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { Layout, Menu, Breadcrumb, Input, Button, Space, Avatar, Select, Badge, Dropdown } from 'antd';
 
 import { BellOutlined } from '@ant-design/icons';
 
-
 const { Sider , Header} = Layout;
 
 
-function fetchAvatar() {
-    console.log('fetching avatar...')
-    apiService.fetchUserInfo().then(data => {
-    setUserInfo(data);
-    
-    });
-    
-}
 
-function handleMenuClick(item) {
-    console.log('click', item.key );
-    switch(item.key) {
-        case 'logout':
-            message.info('退出登入');
-            break;
-    }
-}
+// function fetchAvatar() {
+//     console.log('fetching avatar...')
+//     apiService.fetchUserInfo().then(data => {
+//     setUserInfo(data);
+    
+//     });
+    
+// }
 
 function handeLogout() {
     localStorage.clear()
@@ -45,6 +38,7 @@ const CtripHeader = () => {
         username: localStorage.getItem('username') || '商户昵称',
         name: localStorage.getItem('name') || '商户姓名',
     });
+    const navigate = useNavigate();
 
     const userMenuItem = [
         { key: 'logout', label: '退出登入' }
@@ -53,6 +47,17 @@ const CtripHeader = () => {
     const notificationMenu = [
         {key: '1', label:'我的消息'}
     ]
+
+
+    function handleMenuClick(item) {
+    console.log('click', item.key );
+    switch(item.key) {
+        case 'logout':
+            localStorage.clear();
+            navigate('/login');
+            break;
+    }
+}
 
 
     return (
@@ -81,7 +86,7 @@ const CtripHeader = () => {
             <div className="header-user" style={{cursor: 'pointer', display: 'flex', alignItems: 'center'}}>
                 <Avatar class="user-avatar">头像</Avatar> 
                 <span className="user-name" style={{ marginLeft: '8px' }}>
-                    {userInfo.name}|{userInfo.username}
+                    {userInfo.username}|{userInfo.name}
                 </span>
             </div>
         </Dropdown>
