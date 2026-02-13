@@ -12,12 +12,14 @@ exports.login = async (req, res) => {
         // 查找用户
         const user = await findUserByUsername(account) || await findUserByEmail(account) || await findUserByPhone(account)
         if(!user) {
+            console.log('User not found')
             return res.status(401).json({ message: 'Invalid credentials' })
         }
 
         //验证密码正确
         const isMatch = await bcrypt.compare(password, user.password)
         if(!isMatch) {
+            console.log('Invalid credentials')
             return res.status(401).json({ message: 'Invalid credentials' })
         }
         
@@ -39,7 +41,7 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
     try{
-        const {username, name, phone, email, password, confirmPassword} = req.body
+        const {username, name, phone, email, password} = req.body
         console.log('register:',req.body)
         //检查用户是否存在
         const user = await findUserByUsername(username)
@@ -48,16 +50,13 @@ exports.register = async (req, res) => {
             return res.status(409).json({ message: 'User already exists' })
         }
 
-        // user = await findUserByEmail(email)
-        // if(email) {
-        //     console.log('Email already exists')
-        //     return res.status(409).json({ message: 'Email already exists' })
-        // }
+        const existEmail = await findUserByEmail(email)
+        if(existEmail) {
+            console.log('Email already exists')
+            return res.status(409).json({ message: 'Email already exists' })
+        }
         
-        // if(password != confirmPassword) {
-        //     console.log('Passwords do not match')
-        //     return res.status(409).json({ message: 'Passwords do not match' })
-        // }
+
         //加密密码
         const encryptedPassword = await bcrypt.hash(password, 10)
         console.log(encryptedPassword)
@@ -68,6 +67,7 @@ exports.register = async (req, res) => {
         })
 
     } catch (error) {
-        res.status(500).json({ message: 'register failed',error })
+        console.error('Register failed:', error.message)
+        res.status(500).json({ message: 'register failed', error: error.message })
     }
 }

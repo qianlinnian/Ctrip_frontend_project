@@ -15,7 +15,7 @@ const findUserByUsername = async (username) => {
         const [rows] = await pool.execute('SELECT * FROM user WHERE username = ?', [username])
         return rows[0]
     } catch (error) {
-        console.log("error", error)
+        console.log("error", error.message)
     }
 }
 

@@ -2,25 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/pc-common.css'
 import apiService from '../../services/api.js'
+import {Form, Button, Input} from 'antd';
+
 
 const Login = () => {
 
-  const [username, setUsername] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
 
   const handleLogin = async() => {
     try {
-      console.log('Login:', username, password);
-      const response = await apiService.request('/auth/login', {username: username, password: password});
-      console.log('request to', '/auth/login', 'with', {username: username, password: password})
-      console.log(response);
+      console.log('Login:', account, password);
+      
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({account: account, password: password})
+      })
+
 
         //登入成功
-      if (response && response.success) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (response.ok) {
+        const data =  await response.json()
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
 
         //重定向到主页
         navigate('/merchant-dashboard');
@@ -60,35 +69,17 @@ const Login = () => {
               <p class="form-subtitle">欢迎使用易宿酒店管理平台</p>
             </div>
 
-            {/* 登录表单 */}
-            <form class="login-form" id="passwordForm">
+            <Form className="login-form" id="passwordForm">
               <div class="form-group">
-                <label class="form-label">账号</label>
-                <div class="input-wrapper">
-                  <span class="input-icon">👤</span>
-                  <input
-                    type="text"
-                    class="form-input"
-                    placeholder="请输入账号/手机号/邮箱"
-                    autocomplete="username"
-                    onChange={(e) => setUsername(e.target.value)}
-                  />
-                </div>
+                <Form.Item label="账号" name="account" rules={[{required: true, message: '请输入账号'}]}> 
+                  <Input placeholder="请输入账号/手机号/邮箱" id="username" value={account} onChange={(e) => setAccount(e.target.value)} />
+                </Form.Item>
               </div>
 
               <div class="form-group">
-                <label class="form-label">密码</label>
-                <div class="input-wrapper">
-                  <span class="input-icon">🔒</span>
-                  <input
-                    type="password"
-                    class="form-input"
-                    placeholder="请输入密码"
-                    autocomplete="current-password"
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <span class="input-suffix" onclick="togglePassword(this)">👁️</span>
-                </div>
+                <Form.Item label="密码" name="password" rules={[{required: true, message: '请输入密码'}]}> 
+                  <Input placeholder="请输入密码" id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </Form.Item>
               </div>
 
               <div class="form-row">
@@ -99,14 +90,18 @@ const Login = () => {
                 <a href="javascript:void(0)" class="link-text" onclick="alert('忘记密码功能')">忘记密码？</a>
               </div>
 
-              <button type="button" class="btn btn-primary btn-block" onClick={handleLogin}>
+              <Button type="primary" className="btn btn-primary btn-block" onClick={handleLogin}>
                 登 录
-              </button>
+              </Button>
 
               <div class="form-footer">
                 <span class="footer-text">还没有账号？</span>
                 <a href="/register" class="link-primary">立即注册</a>
               </div>
+            </Form>
+            {/* 登录表单 */}
+            <form class="login-form" id="passwordForm">
+              
             </form>
           </div>
         </div>
