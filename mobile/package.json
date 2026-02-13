@@ -22,25 +22,25 @@
   "author": "",
   "dependencies": {
     "@babel/runtime": "^7.21.0",
-    "@tarojs/components": "3.6.x",
-    "@tarojs/helper": "3.6.x",
-    "@tarojs/plugin-platform-weapp": "3.6.x",
-    "@tarojs/plugin-platform-h5": "3.6.x",
-    "@tarojs/react": "3.6.x",
-    "@tarojs/runtime": "3.6.x",
-    "@tarojs/shared": "3.6.x",
-    "@tarojs/taro": "3.6.x",
+    "@tarojs/components": "4.x",
+    "@tarojs/helper": "4.x",
+    "@tarojs/plugin-platform-weapp": "4.x",
+    "@tarojs/plugin-platform-h5": "4.x",
+    "@tarojs/react": "4.x",
+    "@tarojs/runtime": "4.x",
+    "@tarojs/shared": "4.x",
+    "@tarojs/taro": "4.x",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "taro-ui": "^3.1.0"
+    "taro-ui": "^3.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.21.0",
-    "@tarojs/cli": "3.6.x",
-    "@tarojs/webpack5-runner": "3.6.x",
+    "@tarojs/cli": "4.x",
+    "@tarojs/webpack5-runner": "4.x",
     "@types/react": "^18.0.0",
     "eslint": "^8.36.0",
     "sass": "^1.58.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.0.0"
   }
 }
