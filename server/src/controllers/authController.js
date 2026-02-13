@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken')
 const { findUserByUsername, findUserByEmail, findUserByPhone, createUser } = require('../models/userModule')
 const { generateToken } = require('../utils/jwtUtil')
 
+/* 
+ * 路由对应的函数，在这里导出后在/router/authRouter.js中使用
+*/ 
 
 //登入
 exports.login = async (req, res) => {
@@ -40,6 +43,7 @@ exports.login = async (req, res) => {
 }
 
 
+//
 exports.register = async (req, res) => {
     try{
         const {username, name, phone, email, password} = req.body
