@@ -1,83 +1,10 @@
-import { View, Text, ScrollView, Swiper, SwiperItem } from '@tarojs/components'
+import { View, Text, ScrollView, Swiper, SwiperItem, Button } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { AtIcon } from 'taro-ui'
+import { getHotelDetail } from '../../services/hotel'
+import CalendarPicker from '../../components/CalendarPicker'
 import './index.scss'
-
-// 与 list 页共用的 mock 数据（按 id 查找）
-const MOCK_HOTELS = [
-  { id: 1, name: '上海外滩茂悦大酒店',        star: 5, score: 4.9, scoreLabel: '超赞', reviewCount: 3241, distance: '距外滩步行5分钟',       price: 1280, originalPrice: 1680, tags: ['免费早餐', '可免费取消'], color: '#1a73e8',
-    address: '上海市黄浦区中山东二路111号', phone: '021-23218888',
-    facilities: ['免费WiFi', '停车场', '健身房', '游泳池', '餐厅', '商务中心', '洗衣服务', '24小时前台'],
-    rooms: [
-      { id: 'r1', name: '豪华大床房', area: 42, floor: '18-32层', bed: '1张特大床', breakfast: '含早餐', cancel: '可免费取消', price: 1280, originalPrice: 1680 },
-      { id: 'r2', name: '外滩景观大床房', area: 48, floor: '25-40层', bed: '1张特大床', breakfast: '含早餐', cancel: '可免费取消', price: 1680, originalPrice: 2100 },
-      { id: 'r3', name: '豪华双床房', area: 42, floor: '18-32层', bed: '2张大床', breakfast: '不含早餐', cancel: '不可取消', price: 1180, originalPrice: null },
-    ]
-  },
-  { id: 2, name: '上海迪士尼乐园酒店',         star: 5, score: 4.8, scoreLabel: '超赞', reviewCount: 5892, distance: '距迪士尼步行3分钟',      price: 2180, originalPrice: 2680, tags: ['含早餐', '主题客房'],     color: '#e91e63',
-    address: '上海市浦东新区川沙新镇黄赵路1号', phone: '021-20998888',
-    facilities: ['免费WiFi', '停车场', '游泳池', '儿童乐园', '餐厅', '主题商店', '24小时前台', '行李寄存'],
-    rooms: [
-      { id: 'r1', name: '标准主题客房', area: 38, floor: '2-5层', bed: '1张特大床', breakfast: '含早餐', cancel: '可免费取消', price: 2180, originalPrice: 2680 },
-      { id: 'r2', name: '梦幻套房', area: 65, floor: '3-5层', bed: '1张特大床+沙发床', breakfast: '含早餐', cancel: '可免费取消', price: 3580, originalPrice: 4200 },
-    ]
-  },
-  { id: 3, name: '上海中心J酒店',              star: 5, score: 4.9, scoreLabel: '超赞', reviewCount: 1024, distance: '距陆家嘴地铁步行8分钟',  price: 3200, originalPrice: null,  tags: ['超高层景观', '米其林餐厅'], color: '#ff6f00',
-    address: '上海市陆家嘴银城中路501号上海中心大厦', phone: '021-20158888',
-    facilities: ['免费WiFi', '代客泊车', '游泳池', '健身房', '米其林餐厅', 'SPA', '商务中心', '管家服务'],
-    rooms: [
-      { id: 'r1', name: '高层景观大床房', area: 55, floor: '84-98层', bed: '1张特大床', breakfast: '不含早餐', cancel: '可免费取消', price: 3200, originalPrice: null },
-      { id: 'r2', name: '景观套房', area: 120, floor: '90-110层', bed: '1张特大床', breakfast: '含早餐', cancel: '可免费取消', price: 6800, originalPrice: 8000 },
-    ]
-  },
-  { id: 4, name: '上海静安香格里拉大酒店',     star: 5, score: 4.7, scoreLabel: '很赞', reviewCount: 2156, distance: '距静安寺步行8分钟',      price: 880,  originalPrice: 1200, tags: ['免费早餐', '健身房'],     color: '#4caf50',
-    address: '上海市静安区威海路1218号', phone: '021-22036888',
-    facilities: ['免费WiFi', '停车场', '游泳池', '健身房', '餐厅', 'SPA', '商务中心', '儿童俱乐部'],
-    rooms: [
-      { id: 'r1', name: '豪华大床房', area: 40, floor: '6-20层', bed: '1张特大床', breakfast: '含早餐', cancel: '可免费取消', price: 880, originalPrice: 1200 },
-      { id: 'r2', name: '豪华双床房', area: 40, floor: '6-20层', bed: '2张大床', breakfast: '含早餐', cancel: '不可取消', price: 820, originalPrice: null },
-    ]
-  },
-  { id: 5, name: '上海虹桥宾馆',               star: 4, score: 4.5, scoreLabel: '很赞', reviewCount: 892,  distance: '距虹桥机场车程15分钟',  price: 420,  originalPrice: 580,  tags: ['含早餐', '接机服务'],     color: '#9c27b0',
-    address: '上海市长宁区虹桥路2419号', phone: '021-62688888',
-    facilities: ['免费WiFi', '停车场', '餐厅', '接机服务', '商务中心', '24小时前台'],
-    rooms: [
-      { id: 'r1', name: '标准大床房', area: 32, floor: '3-8层', bed: '1张大床', breakfast: '含早餐', cancel: '可免费取消', price: 420, originalPrice: 580 },
-      { id: 'r2', name: '标准双床房', area: 32, floor: '3-8层', bed: '2张单床', breakfast: '含早餐', cancel: '不可取消', price: 380, originalPrice: null },
-    ]
-  },
-  { id: 6, name: '汉庭酒店（上海人民广场店）', star: 3, score: 4.3, scoreLabel: '不错', reviewCount: 4320, distance: '距人民广场步行3分钟',    price: 238,  originalPrice: 320,  tags: ['地铁附近', '24小时前台'], color: '#607d8b',
-    address: '上海市黄浦区西藏中路268号', phone: '021-63117777',
-    facilities: ['免费WiFi', '24小时前台', '行李寄存', '叫车服务'],
-    rooms: [
-      { id: 'r1', name: '智尚大床房', area: 20, floor: '3-10层', bed: '1张大床', breakfast: '不含早餐', cancel: '可免费取消', price: 238, originalPrice: 320 },
-      { id: 'r2', name: '智尚双床房', area: 22, floor: '3-10层', bed: '2张单床', breakfast: '不含早餐', cancel: '不可取消', price: 218, originalPrice: null },
-    ]
-  },
-  { id: 7, name: '如家酒店（南京路步行街店）', star: 3, score: 4.2, scoreLabel: '不错', reviewCount: 2100, distance: '距南京路步行街步行1分钟', price: 198,  originalPrice: 268,  tags: ['绝佳位置', '近地铁'],     color: '#795548',
-    address: '上海市黄浦区南京东路388号', phone: '021-63226666',
-    facilities: ['免费WiFi', '24小时前台', '行李寄存', '自动售货机'],
-    rooms: [
-      { id: 'r1', name: '温馨大床房', area: 18, floor: '2-8层', bed: '1张大床', breakfast: '不含早餐', cancel: '可免费取消', price: 198, originalPrice: 268 },
-      { id: 'r2', name: '温馨双床房', area: 20, floor: '2-8层', bed: '2张单床', breakfast: '不含早餐', cancel: '不可取消', price: 188, originalPrice: null },
-    ]
-  },
-  { id: 8, name: '亚朵酒店（上海徐汇滨江店）', star: 4, score: 4.6, scoreLabel: '很赞', reviewCount: 763,  distance: '距龙华寺步行20分钟',    price: 560,  originalPrice: 720,  tags: ['免费早餐', '健身房'],     color: '#00bcd4',
-    address: '上海市徐汇区龙腾大道2066号', phone: '021-54668888',
-    facilities: ['免费WiFi', '停车场', '健身房', '餐厅', '图书馆', '24小时前台', '行李寄存'],
-    rooms: [
-      { id: 'r1', name: '轻奢大床房', area: 28, floor: '4-12层', bed: '1张特大床', breakfast: '含早餐', cancel: '可免费取消', price: 560, originalPrice: 720 },
-      { id: 'r2', name: '轻奢双床房', area: 30, floor: '4-12层', bed: '2张大床', breakfast: '不含早餐', cancel: '不可取消', price: 480, originalPrice: null },
-    ]
-  },
-]
-
-const MOCK_REVIEWS = [
-  { id: 1, user: '旅行达人小王', avatar: 'W', date: '2026-01-15', score: 5, content: '酒店位置绝佳，服务非常周到，早餐种类丰富，下次还会再来！', tags: ['位置好', '服务佳', '早餐棒'] },
-  { id: 2, user: '商务出行李总', avatar: 'L', date: '2026-01-08', score: 5, content: '出差必选，房间宽敞整洁，床很舒适，隔音效果好，WiFi网速也很快。', tags: ['房间大', '隔音好', '网速快'] },
-  { id: 3, user: '蜜月旅行张女士', avatar: 'Z', date: '2025-12-28', score: 4, content: '整体不错，景观很好，就是停车稍微麻烦一点，其他都很满意。', tags: ['景观好', '环境佳'] },
-]
 
 function StarRow({ count }) {
   return (
@@ -102,22 +29,117 @@ function getBannerSlides(color) {
   ]
 }
 
+// 日期格式化辅助函数
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return { month: '', day: '', weekday: '' }
+  const d = new Date(dateStr)
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  return {
+    month: d.getMonth() + 1,
+    day: d.getDate(),
+    weekday: weekdays[d.getDay()]
+  }
+}
+
+// 计算晚数
+function calcNights(checkIn, checkOut) {
+  if (!checkIn || !checkOut) return 1
+  const d1 = new Date(checkIn)
+  const d2 = new Date(checkOut)
+  return Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)))
+}
+
 export default function HotelDetail() {
   const [hotel, setHotel] = useState(null)
+  const [reviews, setReviews] = useState([])
   const [activeTab, setActiveTab] = useState(0)
   const [bannerIndex, setBannerIndex] = useState(0)
+  
+  // 从 URL 获取入住信息
+  const [bookingInfo, setBookingInfo] = useState({
+    checkInDate: '',
+    checkOutDate: '',
+    nights: 1,
+    guests: 2,
+    rooms: 1
+  })
+  
+  // 弹窗控制
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [showGuestPicker, setShowGuestPicker] = useState(false)
 
   useEffect(() => {
     const p = Taro.getCurrentInstance()?.router?.params || {}
     const id = Number(p.id)
-    const found = MOCK_HOTELS.find(h => h.id === id)
-    if (found) {
-      setHotel(found)
-    } else {
-      // fallback：用 name 造一个最小对象
-      setHotel({ name: decodeURIComponent(p.name || '酒店详情'), star: 5, score: 4.8, scoreLabel: '超赞', reviewCount: 0, color: '#1a73e8', address: '', phone: '', facilities: [], rooms: [], tags: [], price: 0, originalPrice: null, distance: '' })
-    }
+    
+    // 解析入住信息
+    const checkIn = p.checkInDate || ''
+    const checkOut = p.checkOutDate || ''
+    setBookingInfo({
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      nights: p.nights ? Number(p.nights) : calcNights(checkIn, checkOut),
+      guests: p.guests ? Number(p.guests) : 2,
+      rooms: p.rooms ? Number(p.rooms) : 1
+    })
+    
+    getHotelDetail(id).then(raw => {
+      // 字段适配：将 API 返回字段映射到页面使用的字段名
+      const d = {
+        ...raw,
+        star:        raw.starLevel  ?? raw.star ?? 0,
+        score:       raw.rating     ?? raw.score ?? 0,
+        scoreLabel:  raw.ratingDesc ?? raw.scoreLabel ?? '',
+        reviewCount: raw.reviewCount ?? 0,
+        address:     raw.address    ?? raw.location ?? '',
+        distance:    raw.distance   ?? '',
+        tags:        raw.tags       ?? [],
+        facilities:  raw.facilities ?? [],
+        rooms:       raw.rooms      ?? [],
+        phone:       raw.phone      ?? '',
+        price:       raw.price      ?? raw.minPrice ?? 0,
+        originalPrice: raw.originalPrice ?? null,
+        color:       raw.color      ?? '#1a73e8',
+      }
+      setHotel(d)
+      setReviews(raw.reviews || [])
+    }).catch(() => {
+      Taro.showToast({ title: '加载失败', icon: 'none' })
+    })
   }, [])
+
+  // 日历确认回调
+  const handleCalendarConfirm = (checkIn, checkOut, nights) => {
+    setBookingInfo(prev => ({
+      ...prev,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      nights
+    }))
+    setShowCalendar(false)
+  }
+
+  // 人数/房间操作
+  const incGuests = () => {
+    if (bookingInfo.guests < 8) {
+      setBookingInfo(prev => ({ ...prev, guests: prev.guests + 1 }))
+    }
+  }
+  const decGuests = () => {
+    if (bookingInfo.guests > 1) {
+      setBookingInfo(prev => ({ ...prev, guests: prev.guests - 1 }))
+    }
+  }
+  const incRooms = () => {
+    if (bookingInfo.rooms < 5) {
+      setBookingInfo(prev => ({ ...prev, rooms: prev.rooms + 1 }))
+    }
+  }
+  const decRooms = () => {
+    if (bookingInfo.rooms > 1) {
+      setBookingInfo(prev => ({ ...prev, rooms: prev.rooms - 1 }))
+    }
+  }
 
   const goBack = () => Taro.navigateTo({ url: '/pages/list/index' })
 
@@ -191,6 +213,38 @@ export default function HotelDetail() {
           </View>
         </View>
 
+        {/* 人间夜 Banner */}
+        {bookingInfo.checkInDate && (
+          <View className="booking-info-banner">
+            <View className="booking-date-section" onClick={() => setShowCalendar(true)}>
+              <View className="date-item">
+                <Text className="date-label">入住</Text>
+                <Text className="date-value">
+                  {formatDateDisplay(bookingInfo.checkInDate).month}月{formatDateDisplay(bookingInfo.checkInDate).day}日
+                </Text>
+                <Text className="date-week">{formatDateDisplay(bookingInfo.checkInDate).weekday}</Text>
+              </View>
+              <View className="date-divider">
+                <Text className="nights-text">共{bookingInfo.nights}晚</Text>
+              </View>
+              <View className="date-item">
+                <Text className="date-label">离店</Text>
+                <Text className="date-value">
+                  {formatDateDisplay(bookingInfo.checkOutDate).month}月{formatDateDisplay(bookingInfo.checkOutDate).day}日
+                </Text>
+                <Text className="date-week">{formatDateDisplay(bookingInfo.checkOutDate).weekday}</Text>
+              </View>
+              <View className="date-edit-icon">
+                <AtIcon value="chevron-right" size="18" color="#999" />
+              </View>
+            </View>
+            <View className="booking-guest-section" onClick={() => setShowGuestPicker(true)}>
+              <Text className="guest-info">{bookingInfo.rooms}间 · {bookingInfo.guests}人</Text>
+              <AtIcon value="chevron-right" size="18" color="#999" />
+            </View>
+          </View>
+        )}
+
         {/* Tabs */}
         <View className="detail-tabs">
           {TABS.map((tab, i) => (
@@ -255,7 +309,7 @@ export default function HotelDetail() {
                 <Text className="score-big-count">共{hotel.reviewCount}条评价</Text>
               </View>
             </View>
-            {MOCK_REVIEWS.map(r => (
+            {reviews.map(r => (
               <View key={r.id} className="review-card">
                 <View className="review-header">
                   <View className="review-avatar">
@@ -363,6 +417,52 @@ export default function HotelDetail() {
           <Text className="footer-book-text">立即预订</Text>
         </View>
       </View>
+
+      {/* 日历选择器 */}
+      <CalendarPicker
+        visible={showCalendar}
+        checkInDate={bookingInfo.checkInDate}
+        checkOutDate={bookingInfo.checkOutDate}
+        onConfirm={handleCalendarConfirm}
+        onClose={() => setShowCalendar(false)}
+      />
+
+      {/* 人数房间选择器 */}
+      {showGuestPicker && (
+        <View className="picker-mask" onClick={() => setShowGuestPicker(false)}>
+          <View className="picker-content" onClick={(e) => e.stopPropagation()}>
+            <View className="picker-header">
+              <Text className="picker-title">入住信息</Text>
+              <View onClick={() => setShowGuestPicker(false)}>
+                <AtIcon value="close" size="24" color="#999" />
+              </View>
+            </View>
+            <View className="guest-room-picker">
+              {/* 人数 */}
+              <View className="picker-row-item">
+                <Text className="picker-label">入住人数</Text>
+                <View className="counter">
+                  <Button className="counter-btn" onClick={decGuests} disabled={bookingInfo.guests <= 1}>-</Button>
+                  <Text className="counter-value">{bookingInfo.guests}</Text>
+                  <Button className="counter-btn" onClick={incGuests} disabled={bookingInfo.guests >= 8}>+</Button>
+                </View>
+              </View>
+              {/* 房间 */}
+              <View className="picker-row-item">
+                <Text className="picker-label">房间数量</Text>
+                <View className="counter">
+                  <Button className="counter-btn" onClick={decRooms} disabled={bookingInfo.rooms <= 1}>-</Button>
+                  <Text className="counter-value">{bookingInfo.rooms}</Text>
+                  <Button className="counter-btn" onClick={incRooms} disabled={bookingInfo.rooms >= 5}>+</Button>
+                </View>
+              </View>
+              <Button className="confirm-btn" onClick={() => setShowGuestPicker(false)}>
+                确定
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
     </View>
   )
 }

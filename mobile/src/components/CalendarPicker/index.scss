@@ -244,6 +244,20 @@
         .today-label {
           color: #0086F6;
         }
+
+        .early-label {
+          color: #FF9800;
+          font-size: 16px;
+        }
+      }
+
+      // 凌晨入住可选日期样式
+      &.early-morning {
+        .day-inner {
+          .day-number {
+            color: #FF9800;
+          }
+        }
       }
     }
   }

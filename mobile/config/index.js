@@ -63,7 +63,7 @@ export default defineConfig(async (merge, { command, mode }) => {
       // 开发服务器配置 - 允许局域网 HTTPS 访问（定位功能需要 HTTPS）
       devServer: {
         host: '0.0.0.0',  // 监听所有网络接口，允许局域网访问
-        port: 10086,
+        port: 3000,
         server: 'https'   // 启用自签名 HTTPS
       },
       output: {

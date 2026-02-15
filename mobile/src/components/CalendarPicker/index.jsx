@@ -1,5 +1,5 @@
 import { View, Text, ScrollView } from '@tarojs/components'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import './index.scss'
 
 // 星期标题
@@ -38,6 +38,19 @@ function toDateStr(date) {
   const m = String(date.getMonth() + 1).padStart(2, '0')
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
+}
+
+// 判断当前是否是凌晨时段（0:00-6:00）
+function isEarlyMorning() {
+  const hour = new Date().getHours()
+  return hour >= 0 && hour < 6
+}
+
+// 获取昨天的日期字符串
+function getYesterdayStr() {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return toDateStr(d)
 }
 
 function parseDateStr(str) {
@@ -80,9 +93,26 @@ function buildMonthList(todayYear, todayMonth) {
 export default function CalendarPicker({ visible, checkInDate, checkOutDate, onConfirm, onClose }) {
   const today = toDateStr(new Date())
   const todayParsed = parseDateStr(today)
+  const yesterday = getYesterdayStr()
+  const earlyMorning = isEarlyMorning()  // 是否凌晨时段（0:00-6:00）
 
   const [tempCheckIn, setTempCheckIn] = useState(checkInDate || '')
   const [tempCheckOut, setTempCheckOut] = useState(checkOutDate || '')
+  // 记录是否选择了深夜入住（初始化时根据传入的日期判断）
+  const [isEarlyCheckIn, setIsEarlyCheckIn] = useState(() => {
+    // 如果是凌晨时段且传入的入住日期是昨天，则标记为深夜入住
+    return earlyMorning && checkInDate === yesterday
+  })
+
+  // 每次打开日历时，同步外部传入的日期状态
+  useEffect(() => {
+    if (visible) {
+      setTempCheckIn(checkInDate || '')
+      setTempCheckOut(checkOutDate || '')
+      // 判断是否是深夜入住
+      setIsEarlyCheckIn(earlyMorning && checkInDate === yesterday)
+    }
+  }, [visible, checkInDate, checkOutDate, earlyMorning, yesterday])
 
   // 所有月份数据（静态，只算一次）
   const monthList = useMemo(
@@ -97,14 +127,20 @@ export default function CalendarPicker({ visible, checkInDate, checkOutDate, onC
   }, [tempCheckIn, tempCheckOut])
 
   const handleDayClick = (dateStr) => {
-    if (compareDateStr(dateStr, today) < 0) return
+    // 凌晨时段允许选择昨天作为入住日期（凌晨入住）
+    const minDate = earlyMorning ? yesterday : today
+    if (compareDateStr(dateStr, minDate) < 0) return
+    
     if (!tempCheckIn || (tempCheckIn && tempCheckOut)) {
       setTempCheckIn(dateStr)
       setTempCheckOut('')
+      // 如果是凌晨时段且选择了昨天，标记为凌晨入住
+      setIsEarlyCheckIn(earlyMorning && dateStr === yesterday)
     } else {
       if (compareDateStr(dateStr, tempCheckIn) <= 0) {
         setTempCheckIn(dateStr)
         setTempCheckOut('')
+        setIsEarlyCheckIn(earlyMorning && dateStr === yesterday)
       } else {
         setTempCheckOut(dateStr)
       }
@@ -117,12 +153,16 @@ export default function CalendarPicker({ visible, checkInDate, checkOutDate, onC
   }
 
   const getDayState = (dateStr) => {
-    if (compareDateStr(dateStr, today) < 0) return 'past'
+    // 凌晨时段允许选择昨天
+    const minDate = earlyMorning ? yesterday : today
+    if (compareDateStr(dateStr, minDate) < 0) return 'past'
     if (dateStr === tempCheckIn) return 'check-in'
     if (dateStr === tempCheckOut) return 'check-out'
     if (tempCheckIn && tempCheckOut &&
         compareDateStr(dateStr, tempCheckIn) > 0 &&
         compareDateStr(dateStr, tempCheckOut) < 0) return 'range'
+    // 凌晨时段的昨天日期特殊标识
+    if (earlyMorning && dateStr === yesterday) return 'early-morning'
     return 'normal'
   }
 
@@ -130,7 +170,9 @@ export default function CalendarPicker({ visible, checkInDate, checkOutDate, onC
 
   const checkInParsed = parseDateStr(tempCheckIn)
   const checkOutParsed = parseDateStr(tempCheckOut)
-  const checkInLabel = checkInParsed ? `${checkInParsed.month}月${checkInParsed.day}日` : '入住'
+  const checkInLabel = checkInParsed 
+    ? `${checkInParsed.month}月${checkInParsed.day}日${isEarlyCheckIn ? '(深夜)' : ''}` 
+    : '入住'
   const checkOutLabel = checkOutParsed ? `${checkOutParsed.month}月${checkOutParsed.day}日` : '离店'
 
   return (
@@ -189,8 +231,10 @@ export default function CalendarPicker({ visible, checkInDate, checkOutDate, onC
                     const state = getDayState(ds)
                     const isWeekend = ci === 0 || ci === 6
                     const isToday = ds === today
+                    const isYesterday = ds === yesterday
                     const isRangeStart = state === 'check-in' && !!tempCheckOut
                     const isRangeEnd = state === 'check-out'
+                    const showEarlyMorningLabel = earlyMorning && isYesterday && state !== 'check-in'
 
                     return (
                       <View
@@ -198,7 +242,7 @@ export default function CalendarPicker({ visible, checkInDate, checkOutDate, onC
                         className={[
                           'day-cell',
                           state,
-                          isWeekend && state === 'normal' ? 'weekend-day' : '',
+                          isWeekend && (state === 'normal' || state === 'early-morning') ? 'weekend-day' : '',
                           isRangeStart ? 'range-start' : '',
                           isRangeEnd ? 'range-end' : '',
                         ].filter(Boolean).join(' ')}
@@ -206,11 +250,14 @@ export default function CalendarPicker({ visible, checkInDate, checkOutDate, onC
                       >
                         <View className="day-inner">
                           <Text className="day-number">{day}</Text>
-                          {isToday && state === 'normal' && (
+                          {isToday && (state === 'normal' || state === 'early-morning') && (
                             <Text className="day-sub-label today-label">今</Text>
                           )}
+                          {showEarlyMorningLabel && (
+                            <Text className="day-sub-label early-label">深夜入住</Text>
+                          )}
                           {state === 'check-in' && (
-                            <Text className="day-sub-label">入住</Text>
+                            <Text className="day-sub-label">{isEarlyCheckIn ? '深夜入住' : '入住'}</Text>
                           )}
                           {state === 'check-out' && (
                             <Text className="day-sub-label">离店</Text>

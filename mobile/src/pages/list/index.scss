@@ -290,6 +290,16 @@
     }
   }
 
+  .loading-state {
+    padding: 120px 40px;
+    text-align: center;
+
+    .loading-text {
+      font-size: 28px;
+      color: #999;
+    }
+  }
+
   .empty-state {
     padding: 120px 40px;
     text-align: center;

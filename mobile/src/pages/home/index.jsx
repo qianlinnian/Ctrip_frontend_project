@@ -1,5 +1,5 @@
-import { View, Text, Input, Button, Swiper, SwiperItem, Image } from '@tarojs/components'
-import { useState, useRef } from 'react'
+import { View, Text, Input, Button, Swiper, SwiperItem, Image, ScrollView } from '@tarojs/components'
+import { useState, useRef, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { AtIcon } from 'taro-ui'
 import { convertLocationToCity } from '../../utils/location'
@@ -113,23 +113,42 @@ const CITIES_BY_LETTER = ALL_CITIES.reduce((acc, city) => {
 }, {})
 const SORTED_LETTERS = Object.keys(CITIES_BY_LETTER).sort()
 
-// 生成今天/明天的日期字符串
-function getTodayStr() {
-  const d = new Date()
+// 判断当前是否是凌晨时段（0:00-6:00）
+function isEarlyMorning() {
+  const hour = new Date().getHours()
+  return hour >= 0 && hour < 6
+}
+
+// 格式化日期为字符串
+function formatDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-function getTomorrowStr() {
+
+// 获取默认入住日期（凌晨时段返回昨天，否则返回今天）
+function getDefaultCheckInDate() {
   const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  if (isEarlyMorning()) {
+    d.setDate(d.getDate() - 1) // 凌晨入住，入住日期为昨天
+  }
+  return formatDateStr(d)
+}
+
+// 获取默认离店日期（入住日期的次日）
+function getDefaultCheckOutDate() {
+  const d = new Date()
+  if (!isEarlyMorning()) {
+    d.setDate(d.getDate() + 1) // 非凌晨，离店为明天
+  }
+  // 凌晨入住时，离店为今天（即当天中午12点后）
+  return formatDateStr(d)
 }
 
 export default function Home() {
   // 搜索参数状态
   const [searchParams, setSearchParams] = useState({
     destination: '上海',
-    checkInDate: getTodayStr(),
-    checkOutDate: getTomorrowStr(),
+    checkInDate: getDefaultCheckInDate(),
+    checkOutDate: getDefaultCheckOutDate(),
     guests: 2,
     rooms: 1,
     nights: 1,
@@ -443,6 +462,7 @@ export default function Home() {
           查询
         </Button>
       </View>
+
 
       {/* 目的地选择器 */}
       {showDestinationPicker && (
