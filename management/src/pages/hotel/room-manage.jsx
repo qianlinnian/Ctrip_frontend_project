@@ -79,11 +79,12 @@ const roomManage = ({roomFormsRef}) => {
     const tabsItems = roomForms.map((roomItem) => ({
         key: roomItem.id.toString(),
         label: roomItem.name,
-        closable: roomCount > 1,
+        type: "editable-card",
         onClose: () => handleRemoveRoom(roomItem.id),
         children: (
             <Card>
                 <RoomFormContent roomId={roomItem.id} formInstancesRef={roomFormsRef} />
+                <Button onClick={() => handleRemoveRoom(roomItem.id)}>删除房间</Button>
             </Card>
         )
     }))
@@ -122,22 +123,22 @@ const RoomFormContent = ({roomId, formInstancesRef}) => {
     return (
         <Form form={form}>
                     <div className="room-details">
-                    <Form.Item label="房间名称" name="room_name">
+                    <Form.Item label="房间名称" name="room_name" rules={[{ required: true, message: '请输入房间名称' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间价格" name="room_price">
+                    <Form.Item label="房间价格" name="room_price" rules={[{ required: true, message: '请输入房间价格' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间数量" name="room_count">
+                    <Form.Item label="房间数量" name="room_count" rules={[{ required: true, message: '请输入房间数量' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间类型" name="room_type">
+                    <Form.Item label="房间类型" name="room_type" rules={[{ required: true, message: '请输入房间类型' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间描述" name="room_description">
+                    <Form.Item label="房间描述" name="room_description" rules={[{ required: true, message: '请输入房间描述' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间图片" name="room_images">
+                    <Form.Item label="房间图片" name="room_images" rules={[{ required: false, message: '请上传房间图片' }]}>
                         <Upload listType='picture-card'>
                             上传图片
                         </Upload>

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8888/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 const MOCK_BASE_URL = 'https://m1.apifoxmock.com/m1/7818580-7566390-default'
 
 class ApiService {
@@ -8,6 +8,24 @@ class ApiService {
     }
 
     //将基础路由和端点拼接，组成完整请求；option为可选内容
+    async post(endpoint, data = {}){
+        const url = `${this.baseURL}${endpoint}`;
+        try {
+            const response = await fetch(url, 
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: data
+                }
+            )
+        } catch(error) {
+            console.error('Error in POST api:', error)
+        }  
+    }
+
+
     async request(endpoint, options = {}) {
         const url = `${this.baseURL}${endpoint}`;
         const config = {
@@ -18,7 +36,6 @@ class ApiService {
             },
             ...options
         };
-
 
         try {
             const response = await fetch(url, config);

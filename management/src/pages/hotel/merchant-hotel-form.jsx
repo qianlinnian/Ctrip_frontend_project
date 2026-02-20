@@ -67,7 +67,8 @@ const MerchantHotelForm = ({form}) => {
             
 
                     {/* <!-- 所属城市 --> */}
-                    <Form.Item label='所属城市'>
+                    <Form.Item label='所属城市'
+                    rules={[{required: true, message: '请输入所属城市'}]}>
                         <Input placeholder="请输入所属城市"  />
                     </Form.Item>
 
@@ -110,7 +111,7 @@ const MerchantHotelForm = ({form}) => {
                     <Form.Item
                         label="酒店图片"
                         name="images"
-                        rules={[{ required: true, message: '请上传酒店图片' }]}
+                        rules={[{ required: false, message: '请上传酒店图片' }]}
                     >
                         <Upload
                             action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
@@ -125,7 +126,7 @@ const MerchantHotelForm = ({form}) => {
                     <Form.Item
                         label="营业执照"
                         name="license"
-                        rules={[{ required: true, message: '请上传营业执照' }]}
+                        rules={[{ required: false, message: '请上传营业执照' }]}
                     >
                         <Upload
                             action="https://www.mocky.io/v2/5cc8019d300000980a055e76"

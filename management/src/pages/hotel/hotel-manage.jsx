@@ -4,6 +4,7 @@ import CtripHeader from '../../components/ctripheader'
 import CtripSider from '../../components/ctripsider'
 import MerchantHotelForm from './merchant-hotel-form'
 import RoomManage from './room-manage'
+import apiService from '../../services/api';
 
 
 
@@ -41,9 +42,16 @@ const HotelManage = () => {
 
     
     // 页面切换
-    function handleNextStep() {
-        if (currentStep < stepContent.length - 1) {
+    async function handleNextStep() {
+        if(currentStep >= stepContent.length - 1){
+            return
+        }
+        const isValid = await validateCurrentStep();
+        if(isValid) {
             setCurrentStep(currentStep + 1);
+        }
+        else {
+            console.log("字段验证未通过")
         }
     }
 
@@ -54,6 +62,34 @@ const HotelManage = () => {
     }
 
 
+    const validateCurrentStep = async () => {
+        try {
+            switch(currentStep){
+                //validate hotelForm
+                case 0:
+                    await hotelForm.validateFields()
+                    break
+
+                //validate roomForm
+                case 1:
+                    const roomForms = Object.values(roomFormsRef.current)
+
+                    if(roomForms.length > 0) {
+                        for(const form of roomForms) {
+                            await form.validateFields()
+                        }
+                    }
+            }
+            return true
+        } catch (error) {
+            console.log("字段验证失败：", error)
+            return false
+        }
+    }
+
+
+
+
     //提交
     async function handleSubmit() {
         const hotelData = hotelForm.getFieldsValue();
@@ -62,11 +98,21 @@ const HotelManage = () => {
         roomFormsRef.current以键值对存储，键是id，值是form实例
         */
         const roomsData = Object.values(roomFormsRef.current).map(form => form.getFieldsValue());
-        
-        console.log("待提交的数据：\n","hotelForm:", hotelData, "\nroomForms:", roomsData)
 
+
+        const data = {...hotelData, rooms: roomsData}
+        
+        console.log("待提交的数据：\n","hotelForm:", hotelData, "\nroomForms:", roomsData, "\nformData:", data)
+
+        
+
+        const response =  await apiService.post('hotel/new', data)
+
+
+        console.log("提交结果：", response.data)
 
     }
+
 
     return (
         <div className="admin-layout">
