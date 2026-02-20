@@ -7,53 +7,47 @@ const pool = require('../config/database')
 
 const findHotelByName = async(name) => {
     const [rows] = await pool.execute('SELECT * FROM hotel WHERE name = ?', [name])
-    return [rows]
+    return rows[0]
 }
 
 
 const findHotelRoom = async(hotelid) => {
     const [rows] = await pool.execute('SELECT * FROM room WHERE hotel_id = ?', [hotelid])
-    return [rows]
+    return rows[0]
 }
 
 
 
 
-const addHotel = async(req, res) => {
-    const {name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage} = req.body
-
-    if(findHotelByName(name)) {
-        return res.status(400).json({messaage: 'Hotel name already exist'})
-    }
-
-    const [rows] = await pool.execute('INSERT INTO hotel (name, city, address, star, phone, hotelImage, liscenseImage) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, city, address, star, phone, hotelImage, liscenseImage])
+const addHotel = async(hotelData) => {
+    const {merchant_id, name, city, address, star, phone, description, images, liscense, status} = hotelData
+    const [rows] = await pool.execute('INSERT INTO hotel (merchant_id, name, city, address, star, phone, description, images, liscense, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [merchant_id, name, city, address, star, phone, description, images, liscense, status])
     
-    return [rows]
+    return rows
 }
 
 
-const updateHotel = async(req, res) => {
-    const {name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage} = req.body
-    const [rows] = await pool.execute('UPDATE hotel SET name = ?, city = ?, address = ?, star = ?, roomCount = ?, lowestPrice = ?, phone = ?, description = ?, hotelImage = ?, liscenseImage = ? WHERE name = ?', [name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage, name])
-    return [rows]
+const updateHotel = async(hotelData) => {
+    const {merchant_id, name, city, address, star, phone, description, images, liscense, status } = hotelData
+    const [rows] = await pool.execute('UPDATE hotel SET name = ?, city = ?, address = ?, star = ?, phone = ?, description = ?, images = ?, liscense = ?, status = ? WHERE name = ?', [name, city, address, star, phone, description,images, liscense, status, name])
+    return rows[0]
 }
 
 
 
 
 //房间操作
-const addRoom = async(req, res) => {
-    const {hotelid,roomtype, price,roomcount } = req.body
-    const [rows] = await pool.execute('INSERT INTO room (hotelid,roomtype, price,roomcount) VALUES (?, ?, ?, ?)', [hotelid,roomtype, price,roomcount])
-    return [rows]
+const addRoom = async(roomData) => {
+    console.log(roomData)
+    const [rows] = await pool.execute('INSERT INTO hotel_room (hotel_id,room_type, price,room_count) VALUES (?, ?, ?, ?)', roomData)
+    return rows
 }
 
 
 
-const updateRoom = async(req, res) => {
-    const {hotel_id, name, type, price, description, image} = req.body
-
-    const [rows] = await pool.execute('UPDATE room SET name = ?, type = ?, price = ?, description = ?, image = ? WHERE hotel_id = ?', [name, type, price, description, image, hotel_id])
-
-    return [rows]
+const updateRoom = async(roomData) => {
+    const [rows] = await pool.execute('UPDATE room SET name = ?, type = ?, price = ?, description = ?, image = ? WHERE hotel_id = ?', roomData)
+    return rows
 }
+
+module.exports = {findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom}

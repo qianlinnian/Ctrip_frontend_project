@@ -1,9 +1,10 @@
-import {React, useState} from 'react';
+import {react, useState, useRef} from 'react';
 import { Form, Input, Button, Upload, message, Layout, Steps } from 'antd';
 import CtripHeader from '../../components/ctripheader'
 import CtripSider from '../../components/ctripsider'
 import MerchantHotelForm from './merchant-hotel-form'
 import RoomManage from './room-manage'
+
 
 
 const { Header, Content, Sider } = Layout;
@@ -12,12 +13,16 @@ const { Header, Content, Sider } = Layout;
 
 const HotelManage = () => {
     const [currentStep, setCurrentStep] = useState(0);
+    const [hotelForm] = Form.useForm()
+    const roomFormsRef = useRef({})
 
     const stepContent = [
-        <MerchantHotelForm />,
-        <RoomManage />,
+        (<Form form={hotelForm}><MerchantHotelForm form={hotelForm}/></Form>),
+        (<Form ><RoomManage roomFormsRef={roomFormsRef} /></Form>),
         <div>提交完成</div>
     ];
+
+
 
     const stepItems = [
         {
@@ -48,9 +53,19 @@ const HotelManage = () => {
         }
     }
 
+
     //提交
-    function handleSubmit() {
-        console.log('提交');
+    async function handleSubmit() {
+        const hotelData = hotelForm.getFieldsValue();
+        /*语法解释
+        Object.values():提取对象值,将对象转换为值数组
+        roomFormsRef.current以键值对存储，键是id，值是form实例
+        */
+        const roomsData = Object.values(roomFormsRef.current).map(form => form.getFieldsValue());
+        
+        console.log("待提交的数据：\n","hotelForm:", hotelData, "\nroomForms:", roomsData)
+
+
     }
 
     return (

@@ -1,22 +1,21 @@
-import { addHotel, getHotel, updateHotel, addRoom, updateRoom } from '../models/hotelModule.js'
+const { findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom } = require('../models/hotelModule.js')
 
 
 
 
 exports.editHotelAndRoom = async (req, res) => {
-    const {name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage, rooms} = req.body
-
     //查询酒店是否存在
 
-    const hotel = await findHotelByName(name)
+    const hotel = await findHotelByName(req.body.name)
     if(!hotel) {
         return res.status(404).json({message: 'Hotel not found'})
     }
-    const updatedHotel = await updateHotel(name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage)
+    
+    const updatedHotel = await updateHotel(req.body)
     if(!updateHotel) {
         return res.status(500).json({message: 'Failed to update hotel'})
     }
-
+                                                   
     const updateRoom = await updateRoom(rooms.map((room) => [room.hotel_id, room.name, room.type, room.price, room.description, room.image]))
 
     if(!updateRoom) {
@@ -28,16 +27,28 @@ exports.editHotelAndRoom = async (req, res) => {
 
 
 
+
 exports.addHotelAndRoom = async(req, res) => {
-    const {name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage, rooms} = req.body
-    const addHotel = await addHotel(name, city, address, star, roomCount, lowestPrice, phone, description, hotelImage, liscenseImage)
-    if(!addHotel) {
+
+    const existHotel = await findHotelByName(req.body.name)
+    if(existHotel) {
+        return res.status(400).json({messaage: 'Hotel name already exist'})
+    }
+
+
+    const addHotelResult = await addHotel(req.body)
+    if(!addHotelResult) {
         return res.status(500).json({message: 'Failed to add hotel'})
     }
-    const addRoom = await addRoom(rooms.map((room) => [addHotel.insertId, room.name, room.type, room.price, room.description, room.image]))
-    if(!addRoom) {
-        return res.status(500).json({message: 'Failed to add room'})
+
+    const rooms = req.body.rooms.map((room) => [addHotelResult.insertId, room.room_type, room.price, room.room_count])
+    for( const room of rooms ) {
+        const addRoomResult = await addRoom(room)
+        if(!addRoomResult) {
+            return res.status(500).json({message: 'Failed to add room'})
+        }
     }
+
     res.status(200).json({message: 'Hotel&Room added successfully', hotel: addHotel})
 }
 

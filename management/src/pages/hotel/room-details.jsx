@@ -3,12 +3,12 @@ import { Form, Input, Button, Upload } from 'antd';
 
 
 
-const RoomDetails = () => {
+const RoomDetails = ({form}) => {
     
     return (
         <>
             <div className="room-details">
-                <Form>
+                <Form form={form}>
                     <Form.Item label="房间名称">
                         <Input />
                     </Form.Item>
@@ -24,7 +24,6 @@ const RoomDetails = () => {
                         </Upload>
                     </Form.Item>
                 </Form>
-                <Button type="primary">提交</Button>
             </div>
         </>
     )
