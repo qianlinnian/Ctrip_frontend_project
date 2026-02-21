@@ -144,21 +144,64 @@ function getDefaultCheckOutDate() {
 }
 
 export default function Home() {
+  // 从本地存储读取上次的入住信息，否则使用默认值
+  const getInitialSearchParams = () => {
+    try {
+      const saved = Taro.getStorageSync('bookingInfo')
+      if (saved) {
+        return {
+          destination: saved.destination || '上海',
+          checkInDate: saved.checkInDate || getDefaultCheckInDate(),
+          checkOutDate: saved.checkOutDate || getDefaultCheckOutDate(),
+          guests: saved.guests || 2,
+          rooms: saved.rooms || 1,
+          nights: saved.nights || 1,
+          keyword: '',
+          starLevel: saved.starLevel || 0,
+          priceMin: saved.priceMin ?? -1,
+          priceMax: saved.priceMax ?? -1
+        }
+      }
+    } catch (e) {
+      console.log('读取本地存储失败', e)
+    }
+    return {
+      destination: '上海',
+      checkInDate: getDefaultCheckInDate(),
+      checkOutDate: getDefaultCheckOutDate(),
+      guests: 2,
+      rooms: 1,
+      nights: 1,
+      keyword: '',
+      starLevel: 0,
+      priceMin: -1,
+      priceMax: -1
+    }
+  }
+
   // 搜索参数状态
-  const [searchParams, setSearchParams] = useState({
-    destination: '上海',
-    checkInDate: getDefaultCheckInDate(),
-    checkOutDate: getDefaultCheckOutDate(),
-    guests: 2,
-    rooms: 1,
-    nights: 1,
-    keyword: '',
-    starLevel: 0,   // 0=不限, 2~5=对应星级
-    priceMin: -1,   // -1=不限, 否则最低价
-    priceMax: -1    // -1=不限, 否则最高价（priceMax=0 表示 1000+ 无上限）
-  })
+  const [searchParams, setSearchParams] = useState(getInitialSearchParams)
   const [currentLocation, setCurrentLocation] = useState('定位中...') // 当前定位
   const [isLocating, setIsLocating] = useState(false) // 是否正在定位
+
+  // 当入住信息变化时，保存到本地存储
+  useEffect(() => {
+    try {
+      Taro.setStorageSync('bookingInfo', {
+        destination: searchParams.destination,
+        checkInDate: searchParams.checkInDate,
+        checkOutDate: searchParams.checkOutDate,
+        guests: searchParams.guests,
+        rooms: searchParams.rooms,
+        nights: searchParams.nights,
+        starLevel: searchParams.starLevel,
+        priceMin: searchParams.priceMin,
+        priceMax: searchParams.priceMax
+      })
+    } catch (e) {
+      console.log('保存本地存储失败', e)
+    }
+  }, [searchParams])
 
   // 控制选择器显示
   const [showDestinationPicker, setShowDestinationPicker] = useState(false)
@@ -242,7 +285,7 @@ export default function Home() {
   }
 
   // Tab 数据
-  const tabs = ['国内', '海外', '特价房', '民宿']
+  const tabs = ['国内', '海外']
   const [activeTab, setActiveTab] = useState(0)
 
   // 切换主 Tab，同时更新默认目的地

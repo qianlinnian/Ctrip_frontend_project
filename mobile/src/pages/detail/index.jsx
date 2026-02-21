@@ -16,7 +16,7 @@ function StarRow({ count }) {
   )
 }
 
-const TABS = ['概况', '设施', '评价', '政策']
+const TABS = ['概况', '设施', '政策']
 
 // 根据主色生成多张色调略有变化的"图片"色块
 function getBannerSlides(color) {
@@ -51,7 +51,6 @@ function calcNights(checkIn, checkOut) {
 
 export default function HotelDetail() {
   const [hotel, setHotel] = useState(null)
-  const [reviews, setReviews] = useState([])
   const [activeTab, setActiveTab] = useState(0)
   const [bannerIndex, setBannerIndex] = useState(0)
   
@@ -72,15 +71,35 @@ export default function HotelDetail() {
     const p = Taro.getCurrentInstance()?.router?.params || {}
     const id = Number(p.id)
     
-    // 解析入住信息
-    const checkIn = p.checkInDate || ''
-    const checkOut = p.checkOutDate || ''
+    // 解析入住信息：优先从 URL 读取，没有则从本地存储读取
+    let checkIn = p.checkInDate || ''
+    let checkOut = p.checkOutDate || ''
+    let guests = p.guests ? Number(p.guests) : 0
+    let rooms = p.rooms ? Number(p.rooms) : 0
+    let nights = p.nights ? Number(p.nights) : 0
+
+    // 如果 URL 没有完整信息，从本地存储读取
+    if (!checkIn || !checkOut) {
+      try {
+        const saved = Taro.getStorageSync('bookingInfo')
+        if (saved) {
+          checkIn = checkIn || saved.checkInDate || ''
+          checkOut = checkOut || saved.checkOutDate || ''
+          guests = guests || saved.guests || 2
+          rooms = rooms || saved.rooms || 1
+          nights = nights || saved.nights || calcNights(checkIn, checkOut)
+        }
+      } catch (e) {
+        console.log('读取本地存储失败', e)
+      }
+    }
+
     setBookingInfo({
       checkInDate: checkIn,
       checkOutDate: checkOut,
-      nights: p.nights ? Number(p.nights) : calcNights(checkIn, checkOut),
-      guests: p.guests ? Number(p.guests) : 2,
-      rooms: p.rooms ? Number(p.rooms) : 1
+      nights: nights || calcNights(checkIn, checkOut),
+      guests: guests || 2,
+      rooms: rooms || 1
     })
     
     getHotelDetail(id).then(raw => {
@@ -102,7 +121,6 @@ export default function HotelDetail() {
         color:       raw.color      ?? '#1a73e8',
       }
       setHotel(d)
-      setReviews(raw.reviews || [])
     }).catch(() => {
       Taro.showToast({ title: '加载失败', icon: 'none' })
     })
@@ -141,7 +159,7 @@ export default function HotelDetail() {
     }
   }
 
-  const goBack = () => Taro.navigateTo({ url: '/pages/list/index' })
+  const goBack = () => Taro.navigateBack()
 
   if (!hotel) return <View className="detail-loading"><Text>加载中…</Text></View>
 
@@ -194,7 +212,6 @@ export default function HotelDetail() {
               <Text className="score-num">{hotel.score}</Text>
               <Text className="score-label-text">{hotel.scoreLabel}</Text>
             </View>
-            <Text className="review-count">{hotel.reviewCount}条评价</Text>
           </View>
           <View className="hotel-location-row">
             <AtIcon value='map-pin' size='14' color='#999' />
@@ -264,8 +281,8 @@ export default function HotelDetail() {
             <View className="section">
               <Text className="section-title">酒店介绍</Text>
               <Text className="section-body">
-                {hotel.name}坐落于上海市中心优越地段，{hotel.address}。酒店拥有{hotel.rooms.length > 0 ? `${hotel.rooms.length}种房型` : '多种房型'}，全部配备高速WiFi、豪华卫浴及现代化设施，是商务出行与休闲度假的理想之选。
-              </Text>
+                {hotel.description}
+                </Text>
             </View>
 
             {/* 热门设施速览 */}
@@ -299,45 +316,8 @@ export default function HotelDetail() {
           </View>
         )}
 
-        {/* Tab 内容：评价 */}
-        {activeTab === 2 && (
-          <View className="tab-content">
-            <View className="score-overview">
-              <Text className="score-big">{hotel.score}</Text>
-              <View className="score-overview-right">
-                <Text className="score-big-label">{hotel.scoreLabel}</Text>
-                <Text className="score-big-count">共{hotel.reviewCount}条评价</Text>
-              </View>
-            </View>
-            {reviews.map(r => (
-              <View key={r.id} className="review-card">
-                <View className="review-header">
-                  <View className="review-avatar">
-                    <Text className="avatar-text">{r.avatar}</Text>
-                  </View>
-                  <View className="review-user-info">
-                    <Text className="review-user">{r.user}</Text>
-                    <Text className="review-date">{r.date}</Text>
-                  </View>
-                  <View className="review-score-stars">
-                    {Array.from({ length: r.score }).map((_, i) => (
-                      <Text key={i} className="review-star">★</Text>
-                    ))}
-                  </View>
-                </View>
-                <Text className="review-content">{r.content}</Text>
-                <View className="review-tags">
-                  {r.tags.map((t, i) => (
-                    <Text key={i} className="review-tag">{t}</Text>
-                  ))}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
         {/* Tab 内容：政策 */}
-        {activeTab === 3 && (
+        {activeTab === 2 && (
           <View className="tab-content">
             <View className="section">
               <Text className="section-title">入住须知</Text>
@@ -346,7 +326,6 @@ export default function HotelDetail() {
                   { label: '入住时间', value: '14:00之后' },
                   { label: '退房时间', value: '12:00之前' },
                   { label: '前台服务', value: '24小时' },
-                  { label: '宠物政策', value: '不允许携带宠物' },
                   { label: '吸烟政策', value: '全面禁烟' },
                 ].map((p, i) => (
                   <View key={i} className="policy-item">

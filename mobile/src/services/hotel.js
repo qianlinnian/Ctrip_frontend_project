@@ -29,6 +29,8 @@ export async function searchHotels(params) {
     priceMin,
     priceMax,
     sortBy,
+    keyword,
+    nearBy,      // 附近搜索：地点名称
     page = 1,
     pageSize = 20,
   } = params
@@ -47,6 +49,8 @@ export async function searchHotels(params) {
   if (priceMin != null && priceMin !== -1) query.minPrice = priceMin
   if (priceMax != null && priceMax !== -1) query.maxPrice = priceMax
   if (sortBy) query.sortBy = sortBy
+  if (keyword) query.keyword = keyword
+  if (nearBy) query.nearBy = nearBy
 
   const res = await get('/hotels/list', query)
   return unwrap(res)  // 返回 { hotels: [], total, page, pageSize }

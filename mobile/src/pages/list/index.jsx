@@ -49,49 +49,112 @@ export default function HotelList() {
   const [openTab, setOpenTab] = useState(null)
   const [searchKeyword, setSearchKeyword] = useState('')
 
+  // 分页状态
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const PAGE_SIZE = 10
+
   // 编辑面板状态
   const [showEditPanel, setShowEditPanel] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const [draft, setDraft] = useState({})
 
-  // 从路由参数初始化，然后请求 API
+  // 从路由参数初始化，没有则从本地存储读取，然后请求 API
   useEffect(() => {
     const p = Taro.getCurrentInstance()?.router?.params || {}
+    
+    // 先尝试从本地存储读取
+    let saved = {}
+    try {
+      saved = Taro.getStorageSync('bookingInfo') || {}
+    } catch (e) {
+      console.log('读取本地存储失败', e)
+    }
+
     const initParams = {
-      destination: decodeURIComponent(p.destination || '上海'),
-      checkInDate: p.checkInDate || '',
-      checkOutDate: p.checkOutDate || '',
-      nights: Number(p.nights) || 1,
-      guests: Number(p.guests) || 2,
-      rooms: Number(p.rooms) || 1,
-      starLevel: Number(p.starLevel) || 0,
-      priceMin: Number(p.priceMin) || -1,
-      priceMax: Number(p.priceMax) || -1,
+      destination: decodeURIComponent(p.destination || saved.destination || '上海'),
+      checkInDate: p.checkInDate || saved.checkInDate || '',
+      checkOutDate: p.checkOutDate || saved.checkOutDate || '',
+      nights: Number(p.nights) || saved.nights || 1,
+      guests: Number(p.guests) || saved.guests || 2,
+      rooms: Number(p.rooms) || saved.rooms || 1,
+      starLevel: Number(p.starLevel) || saved.starLevel || 0,
+      priceMin: p.priceMin !== undefined ? Number(p.priceMin) : (saved.priceMin ?? -1),
+      priceMax: p.priceMax !== undefined ? Number(p.priceMax) : (saved.priceMax ?? -1),
     }
     setParams(initParams)
-    fetchHotels(initParams)
+    fetchHotels(initParams, 1, true)
   }, [])
 
-  const fetchHotels = async (p) => {
-    setLoading(true)
+  // 获取酒店列表（支持分页）
+  const fetchHotels = async (p, pageNum = 1, isRefresh = false) => {
+    if (isRefresh) {
+      setLoading(true)
+      setPage(1)
+      setHasMore(true)
+    } else {
+      setLoadingMore(true)
+    }
+
     try {
-      const res = await searchHotels(p)
+      const res = await searchHotels({ ...p, page: pageNum, pageSize: PAGE_SIZE })
       // API 返回 { hotels: [], total, page, pageSize }
-      setHotels(Array.isArray(res) ? res : (res.hotels || res.data || []))
+      const newHotels = Array.isArray(res) ? res : (res.hotels || res.data || [])
+      const total = res.total || newHotels.length
+
+      if (isRefresh) {
+        setHotels(newHotels)
+      } else {
+        setHotels(prev => [...prev, ...newHotels])
+      }
+
+      // 判断是否还有更多数据
+      const loadedCount = isRefresh ? newHotels.length : hotels.length + newHotels.length
+      setHasMore(loadedCount < total && newHotels.length === PAGE_SIZE)
+      setPage(pageNum)
     } catch (e) {
-      setHotels([])
+      if (isRefresh) setHotels([])
+      setHasMore(false)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
-  // 本地仅做关键词过滤（排序已由 API 处理）
-  const sorted = hotels.filter(h =>
-    !searchKeyword.trim() || h.name.includes(searchKeyword.trim())
-  )
+  // 上滑加载更多
+  const loadMore = () => {
+    if (loadingMore || !hasMore || loading) return
+    fetchHotels(params, page + 1, false)
+  }
+
+  // 搜索关键词（调用后端 API）
+  // 支持"附近"搜索：如 "交通大学附近" 或 "附近 交通大学"
+  const handleSearch = () => {
+    const input = searchKeyword.trim()
+    let newParams = { ...params, keyword: undefined, nearBy: undefined }
+    
+    // 检测是否为"附近"搜索
+    const nearByMatch = input.match(/(.+?)附近|附近\s*(.+)/)
+    if (nearByMatch) {
+      const poiName = (nearByMatch[1] || nearByMatch[2])?.trim()
+      if (poiName) {
+        newParams.nearBy = poiName
+        console.log('📍 附近搜索:', poiName)
+      }
+    } else if (input) {
+      newParams.keyword = input
+    }
+    
+    setParams(newParams)
+    fetchHotels(newParams, 1, true)
+  }
+
+  // 搜索结果直接使用 hotels（后端已过滤）
+  const sorted = hotels
 
 
-  const goBack = () => Taro.navigateBack()
+  const goBack = () => Taro.reLaunch({ url: '/pages/home/index' })
 
   // 打开编辑面板：把当前 params 复制到草稿
   const openEditPanel = () => {
@@ -104,7 +167,7 @@ export default function HotelList() {
     const newParams = { ...draft }
     setParams(newParams)
     setShowEditPanel(false)
-    fetchHotels(newParams)
+    fetchHotels(newParams, 1, true)
   }
 
   // 草稿中的计数器操作
@@ -147,12 +210,14 @@ export default function HotelList() {
           </Text>
         </View>
         <View className="header-search-box">
-          <AtIcon value='search' size='16' color='#999' />
+          <AtIcon value='search' size='16' color='#999' onClick={handleSearch} />
           <Input
             className="header-search-input"
             placeholder="搜索酒店名称"
             value={searchKeyword}
             onInput={e => setSearchKeyword(e.detail.value)}
+            onConfirm={handleSearch}
+            confirmType="search"
           />
         </View>
       </View>
@@ -170,7 +235,7 @@ export default function HotelList() {
               <View
                 className={`filter-item ${isActive ? 'active' : ''}`}
                 onClick={() => {
-                  if (!tab.sub) { setSortKey(null); setOpenTab(null); fetchHotels({ ...params, sortBy: null }) }
+                  if (!tab.sub) { setSortKey(null); setOpenTab(null); fetchHotels({ ...params, sortBy: null }, 1, true) }
                   else setOpenTab(isOpen ? null : tab.key)
                 }}
               >
@@ -190,7 +255,7 @@ export default function HotelList() {
                     <View
                       key={s.key}
                       className={`sub-option ${sortKey === s.key ? 'active' : ''}`}
-                      onClick={() => { setSortKey(s.key); setOpenTab(null); fetchHotels({ ...params, sortBy: s.key }) }}
+                      onClick={() => { setSortKey(s.key); setOpenTab(null); fetchHotels({ ...params, sortBy: s.key }, 1, true) }}
                     >
                       <Text className="sub-option-text">{s.label}</Text>
                       {sortKey === s.key && <AtIcon value='check' size='16' color='#0086F6' />}
@@ -298,7 +363,12 @@ export default function HotelList() {
       />
 
       {/* 酒店列表 */}
-      <ScrollView className="hotel-scroll" scrollY>
+      <ScrollView 
+        className="hotel-scroll" 
+        scrollY
+        onScrollToLower={loadMore}
+        lowerThreshold={100}
+      >
         {loading && (
           <View className="loading-state">
             <Text className="loading-text">加载中...</Text>
@@ -355,10 +425,20 @@ export default function HotelList() {
           </View>
         )}
 
-        <View className="list-footer">
-          <Text className="list-footer-text">— 已显示全部结果 —</Text>
-        </View>
+        {/* 底部加载状态 */}
+        {!loading && sorted.length > 0 && (
+          <View className="list-footer">
+            {loadingMore ? (
+              <Text className="list-footer-text">加载中...</Text>
+            ) : hasMore ? (
+              <Text className="list-footer-text">上滑加载更多</Text>
+            ) : (
+              <Text className="list-footer-text">— 已显示全部结果 —</Text>
+            )}
+          </View>
+        )}
       </ScrollView>
     </View>
   )
 }
+
