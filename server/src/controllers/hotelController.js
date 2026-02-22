@@ -11,12 +11,15 @@ exports.editHotelAndRoom = async (req, res) => {
         return res.status(404).json({message: 'Hotel not found'})
     }
     
+
+    //更新酒店字段
     const updatedHotel = await updateHotel(req.body)
     if(!updateHotel) {
         return res.status(500).json({message: 'Failed to update hotel'})
     }
-                                                   
-    const updateRoom = await updateRoom(rooms.map((room) => [room.hotel_id, room.name, room.type, room.price, room.description, room.image]))
+
+    //更新房间字段
+    
 
     if(!updateRoom) {
         return res.status(500).json({message: 'Failed to update room'})
@@ -41,14 +44,16 @@ exports.addHotelAndRoom = async(req, res) => {
         return res.status(500).json({message: 'Failed to add hotel'})
     }
 
-    const rooms = req.body.rooms.map((room) => [addHotelResult.insertId, room.room_type, room.price, room.room_count])
+    //const rooms = req.body.rooms.map((room) => [addHotelResult.insertId, room.room_type, room.price, room.room_count])
+    const rooms = req.body.rooms
     for( const room of rooms ) {
-        const addRoomResult = await addRoom(room)
+
+        const addRoomResult = await addRoom({...room, hotel_id: addHotelResult.insertId})
         if(!addRoomResult) {
             return res.status(500).json({message: 'Failed to add room'})
         }
     }
-
+ 
     res.status(200).json({message: 'Hotel&Room added successfully', hotel: addHotel})
 }
 

@@ -15,25 +15,6 @@ import { Button } from 'antd'
 const roomManage = ({roomFormsRef}) => {
     const [roomForms, setRoomForms] = useState([])
     const [roomCount, setRoomCount] = useState(0)
- 
-    const formInstancesRef = useRef({})
-    
-    function handleChangeRoomType(e) {
-    switch(e.key) {
-        case '1':
-            console.log('标准单人间');
-            break;
-        case '2':
-            console.log('标准双人间');
-            break;
-        case '3':
-            console.log('标准套房');
-            break;
-        case '4':
-            console.log('新增房间类型');
-            break;
-    }
-}
 
 
     function handleAddRoom() {
@@ -48,28 +29,10 @@ const roomManage = ({roomFormsRef}) => {
 
     function handleRemoveRoom(index) {
         setRoomForms(roomForms.filter(item => item.id !== index))
-        delete formInstancesRef.current[index]
+        delete roomFormsRef.current[index]
         setRoomCount(roomCount - 1)
     }
 
-
-
-    // function getAllRoomData() {
-    //     try{
-    //         const allRoomData = roomForms.map(item => {
-    //             const roomForm = formInstancesRef.current[item.id]
-    //             if(roomForm)
-    //             {
-    //                 return roomForm.getFieldsValue() 
-    //             }
-                   
-    //         })
-    //         return allRoomData
-    //     }
-    //     catch(e) {
-    //         console.log(e.message)
-    //     }
-    // }
 
 
     const checkAllForm = () => {
@@ -83,7 +46,7 @@ const roomManage = ({roomFormsRef}) => {
         onClose: () => handleRemoveRoom(roomItem.id),
         children: (
             <Card>
-                <RoomFormContent roomId={roomItem.id} formInstancesRef={roomFormsRef} />
+                <RoomFormContent roomId={roomItem.id} roomFormsRef={roomFormsRef} />
                 <Button onClick={() => handleRemoveRoom(roomItem.id)}>删除房间</Button>
             </Card>
         )
@@ -99,8 +62,6 @@ const roomManage = ({roomFormsRef}) => {
                 items={tabsItems}/>
                 
             </div>
-           
-            
         </main>
     )
 
@@ -109,24 +70,25 @@ const roomManage = ({roomFormsRef}) => {
 
 
 
-const RoomFormContent = ({roomId, formInstancesRef}) => {
+const RoomFormContent = ({roomId, roomFormsRef}) => {
     const [form] = Form.useForm()
     
     useEffect(()=> {
-        formInstancesRef.current[roomId] = form
+        roomFormsRef.current[roomId] = form
 
         return () => {
-            delete formInstancesRef.current[roomId]
+            delete roomFormsRef.current[roomId]
         }
-    }, [form, roomId, formInstancesRef])
+    }, [form, roomId, roomFormsRef])
 
     return (
         <Form form={form}>
                     <div className="room-details">
+                    <Form.Item label="酒店ID" name="hotel_id"><Input /></Form.Item>
                     <Form.Item label="房间名称" name="room_name" rules={[{ required: true, message: '请输入房间名称' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间价格" name="room_price" rules={[{ required: true, message: '请输入房间价格' }]}>
+                    <Form.Item label="房间价格" name="price" rules={[{ required: true, message: '请输入房间价格' }]}>
                         <Input />
                     </Form.Item>
                     <Form.Item label="房间数量" name="room_count" rules={[{ required: true, message: '请输入房间数量' }]}>

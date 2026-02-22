@@ -1,4 +1,4 @@
-import {react, useState, useRef} from 'react';
+import {react, useState, useRef, useMemo} from 'react';
 import { Form, Input, Button, Upload, message, Layout, Steps } from 'antd';
 import CtripHeader from '../../components/ctripheader'
 import CtripSider from '../../components/ctripsider'
@@ -16,13 +16,6 @@ const HotelManage = () => {
     const [currentStep, setCurrentStep] = useState(0);
     const [hotelForm] = Form.useForm()
     const roomFormsRef = useRef({})
-
-    const stepContent = [
-        (<Form form={hotelForm}><MerchantHotelForm form={hotelForm}/></Form>),
-        (<Form ><RoomManage roomFormsRef={roomFormsRef} /></Form>),
-        <div>提交完成</div>
-    ];
-
 
 
     const stepItems = [
@@ -43,7 +36,7 @@ const HotelManage = () => {
     
     // 页面切换
     async function handleNextStep() {
-        if(currentStep >= stepContent.length - 1){
+        if(currentStep >= 2){
             return
         }
         const isValid = await validateCurrentStep();
@@ -73,7 +66,7 @@ const HotelManage = () => {
                 //validate roomForm
                 case 1:
                     const roomForms = Object.values(roomFormsRef.current)
-
+                    
                     if(roomForms.length > 0) {
                         for(const form of roomForms) {
                             await form.validateFields()
@@ -88,29 +81,44 @@ const HotelManage = () => {
     }
 
 
+    function removeUndefined(data) {
+        if(data) {
+            return Object.keys(data).reduce((result, key) => {
+                const value = data[key]
+                if(value === undefined) {
+                    result[key] = null
+                }
+                else{
+                    result[key] = value
+                }
+                return result
+            }, {})
+        }
+    }
 
 
     //提交
     async function handleSubmit() {
+        if(await validateCurrentStep()) {
         const hotelData = hotelForm.getFieldsValue();
         /*语法解释
         Object.values():提取对象值,将对象转换为值数组
         roomFormsRef.current以键值对存储，键是id，值是form实例
         */
         const roomsData = Object.values(roomFormsRef.current).map(form => form.getFieldsValue());
+        const cleanRoomsData = roomsData.map(roomData => removeUndefined(roomData))
+        const cleanHotelData = removeUndefined(hotelData)
 
-
-        const data = {...hotelData, rooms: roomsData}
+        const data = {...cleanHotelData, rooms: cleanRoomsData, merchant_id: 1, status: "pending"}
         
-        console.log("待提交的数据：\n","hotelForm:", hotelData, "\nroomForms:", roomsData, "\nformData:", data)
+        console.log("待提交的数据：", data)
 
-        
-
-        const response =  await apiService.post('hotel/new', data)
+        const response =  await apiService.post('/hotel/new', data)
 
 
-        console.log("提交结果：", response.data)
+        console.log("提交结果：", response)
 
+        }
     }
 
 
@@ -126,7 +134,25 @@ const HotelManage = () => {
                 <div className="admin-content">
                     <Steps current={currentStep} items={stepItems} />
                     {/* 步骤内容 */}
-                    {stepContent[currentStep]}
+                    <div style={{ marginTop: '32px' }}>
+                        <div style={{ display: currentStep === 0 ? 'block' : 'none' }}>
+                            <Form form={hotelForm}>
+                                <MerchantHotelForm form={hotelForm}/>
+                            </Form>
+                        </div>
+                        
+                        <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
+                            <RoomManage roomFormsRef={roomFormsRef} />
+                        </div>
+                        
+                        <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
+                            <div style={{ textAlign: 'center', padding: '40px' }}>
+                                <h2>✅ 提交完成</h2>
+                            </div>
+                        </div>
+                    </div>
+
+
                     {/* <!-- 提交按钮 --> */}
                     <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center' }}>
                         <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'center' }}>

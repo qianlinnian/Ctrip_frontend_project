@@ -64,10 +64,9 @@ const MerchantHotelForm = ({form}) => {
                         <Input placeholder="请输入酒店名称"/>
                     </Form.Item>
 
-            
-
                     {/* <!-- 所属城市 --> */}
-                    <Form.Item label='所属城市'
+                    <Form.Item label='所属城市' 
+                    name='city'
                     rules={[{required: true, message: '请输入所属城市'}]}>
                         <Input placeholder="请输入所属城市"  />
                     </Form.Item>
@@ -82,7 +81,7 @@ const MerchantHotelForm = ({form}) => {
                     </Form.Item>
 
                     {/* <!-- 酒店星级 --> */}
-                    <Form.Item>
+                    <Form.Item name="star">
                         <Rate />
                         
                     </Form.Item>
