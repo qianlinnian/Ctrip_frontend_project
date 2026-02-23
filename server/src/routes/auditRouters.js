@@ -5,6 +5,7 @@ const router = express.Router()
 
 //路由
 router.get('/get-audit-queue', auditController.fetchAuditQueue)
+router.post('handle-audit', auditController.handleAudit)
 
 
 
