@@ -52,19 +52,20 @@ class ApiService {
         }
     }
 
-    async get(url) {
+    async get(endpoint) {
         try {
-            const requestUrl = MOCK_BASE_URL + url;
-            const response = await fetch(requestUrl)
+            const url = this.baseURL + endpoint;
+            const response = await fetch(url)
             if (!response.ok) {
-                throw new Error(response.statusText);
+                console.log('Error in get request:', response.statusText)
             }
+
             const data = await response.json()
-            console.log('data from get:', data)
+            console.log('data from apiServer.get:', data)
             return data;
 
         } catch (error) {
-            console.error(error);
+            console.error(error.message);
             throw error;
         }
     }
