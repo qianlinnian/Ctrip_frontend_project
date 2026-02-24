@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
 import '../../styles/pc-common.css'
 import apiService from '../../services/api.js'
-import {Form, Input, Button, message} from 'antd';
+import {Form, Input, Button, message, Select} from 'antd';
 
 
 const Register = () => {
@@ -14,6 +14,8 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordIsShow, setPasswordIsShow] = useState(false);
+    const [role, setRole] = useState('merchant');
+    
     const navigate = useNavigate();
 
     const registerFormItem = [
@@ -24,10 +26,15 @@ const Register = () => {
         {label: '手机号', name: 'phone', type: 'text', placeholder: '请输入手机号'}
     ]
 
+    const roleSelelctOptions = [
+        {value: 'merchant', label: '商户'},
+        {value: 'admin', label: '管理员'}
+    ]
+
 
     const handleRegister = async () => {
 
-        console.log('Register:\n', 'username:', username, 'phone:', phone, 'email:', email, 'password:', password);
+        console.log('Register:\n', 'username:', username, 'phone:', phone, 'email:', email, 'password:', password, 'role:', role);
         if(password != confirmPassword) {
             console.log('passwords not match');
         }
@@ -37,7 +44,7 @@ const Register = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({username: username, name: name, phone: phone, email: email, password: password})
+                body: JSON.stringify({username: username, name: name, phone: phone, email: email, password: password, role: role})
             })
 
             if(response.ok) {
@@ -78,6 +85,9 @@ const Register = () => {
 
                     {/* <!-- 注册表单 --> */}
                     <Form className="login-form" id="registerForm" >
+                         <Form.Item label="角色选择" name="role">
+                            <Select placeholder="请选择角色" options={roleSelelctOptions} defaultValue={role} value={role} onChange={(value) => setRole(value)}></Select>
+                         </Form.Item>
                         <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>
                             <div className="input-wrapper">
                                 <Input placeholder="请输入用户名（4-16位字符）" id="username" value={username} onChange={(e) => setUsername(e.target.value)} />

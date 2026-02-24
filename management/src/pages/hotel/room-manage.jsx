@@ -1,7 +1,6 @@
 import {react, useState, useEffect, useRef} from 'react'
 import CtripSider from '../../components/ctripsider'
 import CtripHeader from '../../components/ctripheader'
-import RoomDetails from './room-details.jsx'
 
 import { Dropdown, Tabs, Steps, Card } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
@@ -12,9 +11,13 @@ import { Button } from 'antd'
 
 
 
-const roomManage = ({roomFormsRef}) => {
+
+//initialRooms:传入房间初始化列表
+const roomManage = ({roomFormsRef, initialRooms}) => {
     const [roomForms, setRoomForms] = useState([])
     const [roomCount, setRoomCount] = useState(0)
+
+    
 
 
     function handleAddRoom() {
@@ -85,6 +88,8 @@ const RoomFormContent = ({roomId, roomFormsRef}) => {
         <Form form={form}>
                     <div className="room-details">
                     <Form.Item label="酒店ID" name="hotel_id"><Input /></Form.Item>
+                   
+
                     <Form.Item label="房间名称" name="room_name" rules={[{ required: true, message: '请输入房间名称' }]}>
                         <Input />
                     </Form.Item>

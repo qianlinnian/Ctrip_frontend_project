@@ -3,7 +3,7 @@ import CtripSider from '../../components/ctripsider.jsx'
 import CtripHeader from '../../components/ctripheader.jsx'
 import HotelDetails from './hotel-details.jsx'
 
-import { Table, Button, Modal } from 'antd'
+import { Table, Button, Modal, TextArea } from 'antd'
 import apiService from '../../services/api.js'
 
 
@@ -14,7 +14,9 @@ const AuditPage = () => {
 
     const [auditList, setAuditList] = useState([])
     const [isShowModal, setIsShowModal] = useState(false)
+    const [auditReason, setAuditReason] = useState('')
     
+    const [currentRecord, setCurrentRecord] = useState({})
 
     //dataIndex与返回数据字段对应
     const auditColumn = [
@@ -28,7 +30,8 @@ const AuditPage = () => {
         // { title: '发布状态', dataIndex: 'publishStatus', key: 'publishStatus' },
         { title: '操作', dataIndex: 'action', key: 'action',
             render: (text, record) => (
-                <Button onClick={() => {setIsShowModal(true)}}>操作</Button>
+                <Button onClick={() => {setCurrentRecord(record); setIsShowModal(true)}}>操作</Button>
+                
             )
          }
     ]
@@ -46,6 +49,9 @@ const AuditPage = () => {
         console.log('data from fetchiAuditList:', response)
         setAuditList(data)
     }
+    useEffect(() => {
+        fetchAuditList()
+    }, [])
 
     useEffect(() => {
         console.log('auditList:', auditList)
@@ -61,6 +67,27 @@ const AuditPage = () => {
         setIsShowModal(false)
     }
 
+
+    const handleApprove = () => {
+        const data = {
+            hotel_id:currentRecord.hotel_id,
+            description: auditReason
+        }
+        console.log('审核通过:', )
+        apiService.post('/audit/approve', data)
+        setIsShowModal(false)
+    }
+
+    const handleReject = () => {
+        const data = {
+            hotel_id:currentRecord.hotel_id,
+            description: auditReason
+        }
+        apiService.post('/audit/reject', data)
+        console.log('审核拒绝:', auditReason)
+        setIsShowModal(false)
+    }
+    
     return (
         <div class="admin-layout">
 
@@ -108,8 +135,17 @@ const AuditPage = () => {
                     <div class="data-table">
                         <Table columns={auditColumn} dataSource={auditList} />
                     </div>
-                    <Modal title='审核处理' open={isShowModal} onOk={handleOk} onCancel={handleCancel}>
+                    <Modal title='审核处理'
+                        open={isShowModal} 
+                        onOk={handleOk} 
+                        onCancel={handleCancel}
+                        footer={[
+                            <Button type='primary' onClick={handleApprove}>审核通过</Button>, 
+                            <Button type='danger' onClick={handleReject}>审核拒绝</Button>, 
+                            <Button type='primary' onClick={handleCancel}>取消</Button>
+                        ]}>
                         <HotelDetails />
+                        <TextArea rows={4} placeholder='请输入审核说明' onChange={(e) => {setAuditReason(e.target.value)}} />
                     </Modal>
 
                 </div>

@@ -5,7 +5,6 @@ import {Descriptions, Table, Tabs} from 'antd'
 
 const hotelDetails = () => {
 
-
     const datasource = {
         name: '酒店名称',
         address: '酒店地址',
