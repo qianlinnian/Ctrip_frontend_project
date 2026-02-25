@@ -108,12 +108,23 @@ export default function HotelList() {
     setParams(initParams)
     fetchHotels(initParams, 1, true)
 
-    // 获取所有标签
-    getAllTags().then(tags => {
-      setHotTags(tags || [])
-    }).catch(() => {
-      setHotTags([])
-    })
+    // 获取所有标签（优先读缓存）
+    try {
+      const cached = Taro.getStorageSync('allTags')
+      if (cached && cached.length > 0) {
+        setHotTags(cached)
+      } else {
+        getAllTags().then(tags => {
+          const list = tags || []
+          setHotTags(list)
+          Taro.setStorageSync('allTags', list)
+        }).catch(() => setHotTags([]))
+      }
+    } catch {
+      getAllTags().then(tags => {
+        setHotTags(tags || [])
+      }).catch(() => setHotTags([]))
+    }
   }, [])
 
   // 获取酒店列表（支持分页）
@@ -158,23 +169,10 @@ export default function HotelList() {
   }
 
   // 搜索关键词（调用后端 API）
-  // 支持"附近"搜索：如 "交通大学附近" 或 "附近 交通大学"
+  // 后端会自动识别地点名称并计算距离
   const handleSearch = () => {
     const input = searchKeyword.trim()
-    let newParams = { ...params, keyword: undefined, nearBy: undefined }
-    
-    // 检测是否为"附近"搜索
-    const nearByMatch = input.match(/(.+?)附近|附近\s*(.+)/)
-    if (nearByMatch) {
-      const poiName = (nearByMatch[1] || nearByMatch[2])?.trim()
-      if (poiName) {
-        newParams.nearBy = poiName
-        console.log('📍 附近搜索:', poiName)
-      }
-    } else if (input) {
-      newParams.keyword = input
-    }
-    
+    let newParams = { ...params, keyword: input || undefined, nearBy: undefined }
     setParams(newParams)
     fetchHotels(newParams, 1, true)
   }
@@ -508,7 +506,7 @@ export default function HotelList() {
                   {hotel.address || hotel.hotel_address || ''}
                 </Text>
                 {hotel.distance && hotel.distance !== '—' && (
-                  <Text className="hotel-distance">距市中心 {hotel.distance}</Text>
+                  <Text className="hotel-distance">距离 {hotel.distance}</Text>
                 )}
               </View>
 

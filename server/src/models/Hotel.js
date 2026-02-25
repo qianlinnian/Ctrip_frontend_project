@@ -2,7 +2,7 @@
  * 酒店模型
  */
 const pool = require('../config/db')
-const { calculateHotelDistances, calculateDistanceToPOI } = require('../services/amap')
+const { calculateHotelDistances, calculateDistanceToPOI, geocode } = require('../services/amap')
 
 /**
  * 解析 images 字段，兼容 JSON 数组字符串和逗号分隔的纯 URL 字符串
@@ -54,23 +54,34 @@ const Hotel = {
     `
     const values = []
 
+    // 先判断 keyword 是否为地点名称（通过高德 geocode）
+    let resolvedNearBy = nearBy
+    if (!resolvedNearBy && keyword) {
+      const city = location || ''
+      const coords = await geocode(keyword, city)
+      if (coords) {
+        resolvedNearBy = keyword
+        console.log(`📍 关键词 "${keyword}" 识别为地点，自动启用附近搜索`)
+      }
+    }
+
     // 城市筛选
     if (location) {
       sql += ` AND h.city = ?`
       values.push(location)
     }
 
-    // 关键词筛选（支持多关键词、全文搜索、模糊搜索）
-    if (keyword) {
+    // 关键词筛选：如果 keyword 已被识别为地点，则不做 LIKE 搜索
+    if (keyword && !resolvedNearBy) {
       const keywords = keyword.trim().split(/\s+/) // 按空格分割多个关键词
-      
+
       if (keywords.length === 1) {
         // 单关键词：使用 LIKE 模糊搜索
         sql += ` AND (h.hotel_name LIKE ? OR h.hotel_address LIKE ? OR h.city LIKE ?)`
         values.push(`%${keywords[0]}%`, `%${keywords[0]}%`, `%${keywords[0]}%`)
       } else {
         // 多关键词：每个关键词都必须匹配（AND 逻辑）
-        const conditions = keywords.map(() => 
+        const conditions = keywords.map(() =>
           `(h.hotel_name LIKE ? OR h.hotel_address LIKE ? OR h.city LIKE ?)`
         ).join(' AND ')
         sql += ` AND (${conditions})`
@@ -163,9 +174,9 @@ const Hotel = {
     }))
 
     // 使用高德API计算距离
-    if (nearBy) {
+    if (resolvedNearBy) {
       // 附近搜索：计算到指定地点的距离，并按距离排序
-      hotels = await calculateDistanceToPOI(hotels, nearBy, location || hotels[0]?.city)
+      hotels = await calculateDistanceToPOI(hotels, resolvedNearBy, location || hotels[0]?.city)
     } else if (location) {
       // 普通搜索：计算到城市中心的距离
       hotels = await calculateHotelDistances(hotels, location)
