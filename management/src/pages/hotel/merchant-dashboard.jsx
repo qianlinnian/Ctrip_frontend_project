@@ -6,72 +6,6 @@ import CtripHeader from '../../components/ctripheader.jsx';
 
 
 
-/*table item
-title: 表头显示的文本
-dataIndex: 指定从数据中的对应字段获取数据
-key:列多的唯一标识
-render:自定义渲染函数
-*/
-const columns = [
-    {
-        title: '酒店名称',
-        dataIndex: 'name',
-        key: 'name',
-    },
-    {
-        title: '城市',
-        dataIndex: 'city',
-        key: 'city',
-    },
-    {
-        title: '地址',
-        dataIndex: 'address',
-        key: 'address',
-    },
-    {
-        title: '星级',
-        dataIndex: 'star',
-        key: 'star',
-    },
-    {
-        title: '房间数',
-        dataIndex: 'roomCount',
-        key: 'roomCount',
-    },
-    {
-        title: '起始价',
-        dataIndex: 'lowestPrice',
-        key: 'lowestPrice',
-    },
-    {
-        title: '审核状态',
-        dataIndex: 'auditStatus',
-        key: 'auditStatus',
-    },
-    {
-        title: '发布状态',
-        dataIndex: 'publishStatus',
-        key: 'publishStatus',
-    },
-    {
-        title: '提交时间',
-        dataIndex: 'submitTime',
-        key: 'submitTime',
-    },
-    {
-        title: '操作',
-        dataIndex: 'action',
-        key: 'action',
-        //（_表示当前行对应字段的值，这里字段action不存在，所以不使用，record表示当前行数据）
-        render: (_, record) => (
-            <Space size="small">
-                <Button type="primary" onClick={() => handleEditHotel(record.id)}>编辑</Button>
-            </Space>
-        ),
-    },
-];
-
-
 
 
 
@@ -80,28 +14,93 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [hotelList, setHotelList] = useState([]);
 
-
-    //用于重定向未登入
-    // if(!localStorage.getItem('token')) {
-    //     console.log('未登入，token不存在')
-    //     navigate('/login')
-    // }
-
     const [username, setUsername] = useState('');
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+    
 
-    const fetchHoltelList = async () => {
+    /*table item
+    title: 表头显示的文本
+    dataIndex: 指定从数据中的对应字段获取数据
+    key:列多的唯一标识
+    render:自定义渲染函数
+    */
+    const columns = [
+        {
+            title: '酒店名称',
+            dataIndex: 'hotel_name',
+            key: 'name',
+        },
+        {
+            title: '城市',
+            dataIndex: 'city',
+            key: 'city',
+        },
+        {
+            title: '地址',
+            dataIndex: 'hotel_address',
+            key: 'address',
+        },
+        {
+            title: '星级',
+            dataIndex: 'hotel_level',
+            key: 'star',
+        },
+        {
+            title: '房间数',
+            dataIndex: 'room_count',
+            key: 'roomCount',
+        },
+        {
+            title: '起始价',
+            dataIndex: 'price_start',
+            key: 'lowestPrice',
+        },
+        {
+            title: '审核状态',
+            dataIndex: 'audit_status',
+            key: 'auditStatus',
+        },
+        {
+            title: '发布状态',
+            dataIndex: 'publish_status',
+            key: 'publishStatus',
+        },
+        {
+            title: '提交时间',
+            dataIndex: 'create_time',
+            key: 'create_time',
+        },
+        {
+            title: '操作',
+            dataIndex: 'action',
+            key: 'action',
+            //（_表示当前行对应字段的值，这里字段action不存在，所以不使用，record表示当前行数据）
+            render: (_, record) => (
+                <Space size="small">
+                    <Button type="primary" onClick={() => handleEditHotel(record.id)}>编辑酒店信息</Button>
+                </Space>
+            ),
+        },
+    ];
+
+
+    const fetchHotelList = async () => {
+        const url = 'http://localhost:5000/api/hotel/my-hotels';
             try {
-                const response = await fetch('https://m1.apifoxmock.com/m1/7818580-7566390-default/hotel/info');
+                const response = await fetch(url, 
+                    {method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({merchant_id: 1})
+                });
                 if(!response.ok) throw new Error('Network response was not ok');
 
                 //promise对象只能.json一次
                 const data = await response.json();
-                const hotels = data.hotel;
+                const hotels = data.hotels;
        
-                console.log(hotels)
+                console.log("酒店列表:", hotels)
                 setHotelList(hotels);
                 console.log("酒店列表获取完成", hotels)
             }
@@ -109,12 +108,6 @@ const Dashboard = () => {
                 console.error('Error fetching hotel list:', error);
             }
         }
-
-    // //获取商店列表 
-    // useEffect(() => { 
-    //     fetchHoltelList();
-    // }, [])
-
 
 
     function getUserInfo() {
@@ -129,12 +122,12 @@ const Dashboard = () => {
 
     function handleNewHotel() {
         console.log("跳转到新增酒店页面")
-        navigate('/merchant-dashboard/new')
+        navigate('/merchant-dashboard/hotel-manage')
     }
 
     function handleEditHotel(id) {
         console.log("跳转到编辑酒店页面")
-        navigate(`/merchant-dashboard/edit/${id}`);
+        navigate(`/merchant-dashboard/edit`);
     }
 
 
@@ -150,7 +143,7 @@ const Dashboard = () => {
 
                     {/* <!-- 顶部栏 --> */}
                     <CtripHeader />
-                    <Button type="primary" onClick={fetchHoltelList}>获取酒店列表</Button>
+                    <Button type="primary" onClick={fetchHotelList}>获取酒店列表</Button>
 
                     {/* <!-- 内容区 --> */}
                     <div class="admin-content">

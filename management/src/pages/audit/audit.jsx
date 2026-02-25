@@ -3,11 +3,11 @@ import CtripSider from '../../components/ctripsider.jsx'
 import CtripHeader from '../../components/ctripheader.jsx'
 import HotelDetails from './hotel-details.jsx'
 
-import { Table, Button, Modal, TextArea } from 'antd'
+import { Table, Button, Modal, Input } from 'antd'
 import apiService from '../../services/api.js'
 
 
-
+const {TextArea} = Input
 
 
 const AuditPage = () => {
@@ -31,7 +31,7 @@ const AuditPage = () => {
         { title: '操作', dataIndex: 'action', key: 'action',
             render: (text, record) => (
                 <Button onClick={() => {setCurrentRecord(record); setIsShowModal(true)}}>操作</Button>
-                
+
             )
          }
     ]

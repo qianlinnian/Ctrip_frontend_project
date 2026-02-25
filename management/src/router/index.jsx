@@ -6,6 +6,7 @@ import MerchantHotelForm from "../pages/hotel/merchant-hotel-form.jsx";
 import AuditPage from "../pages/audit/audit.jsx";
 import RoomManage from "../pages/hotel/room-manage.jsx";
 import HotelManage from "../pages/hotel/hotel-manage.jsx";
+import EditHotelForm from "../pages/hotel/edit-hotel-form.jsx";
 
 
 
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
         path: '/merchant-dashboard/hotel-manage',
         element: <HotelManage />,
     },
+    {
+        path: '/merchant-dashboard/edit',
+        element: <EditHotelForm />,
+    }
         
 ]);
 

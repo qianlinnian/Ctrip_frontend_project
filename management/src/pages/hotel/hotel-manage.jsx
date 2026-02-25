@@ -25,10 +25,6 @@ const HotelManage = () => {
         },
         {
             key: '2',
-            title: '填写房间信息',
-        },
-        {
-            key: '3',
             title: '完成',
         },
     ];
@@ -36,7 +32,7 @@ const HotelManage = () => {
     
     // 页面切换
     async function handleNextStep() {
-        if(currentStep >= 2){
+        if(currentStep >= 1){
             return
         }
         const isValid = await validateCurrentStep();
@@ -56,29 +52,39 @@ const HotelManage = () => {
 
 
     const validateCurrentStep = async () => {
-        try {
-            switch(currentStep){
-                //validate hotelForm
-                case 0:
-                    await hotelForm.validateFields()
-                    break
-
-                //validate roomForm
-                case 1:
-                    const roomForms = Object.values(roomFormsRef.current)
-                    
-                    if(roomForms.length > 0) {
-                        for(const form of roomForms) {
-                            await form.validateFields()
-                        }
-                    }
+        if (currentStep === 0) {
+            try {
+                await hotelForm.validateFields()
+                return true
+            } catch (error) {
+                console.log("字段验证失败：", error)
+                return false
             }
-            return true
-        } catch (error) {
-            console.log("字段验证失败：", error)
-            return false
         }
     }
+    //     try {
+    //         switch(currentStep){
+    //             //validate hotelForm
+    //             case 0:
+    //                 await hotelForm.validateFields()
+    //                 break
+
+    //             //validate roomForm
+    //             case 1:
+    //                 const roomForms = Object.values(roomFormsRef.current)
+                    
+    //                 if(roomForms.length > 0) {
+    //                     for(const form of roomForms) {
+    //                         await form.validateFields()
+    //                     }
+    //                 }
+    //         }
+    //         return true
+    //     } catch (error) {
+    //         console.log("字段验证失败：", error)
+    //         return false
+    //     }
+    // }
 
 
     function removeUndefined(data) {
@@ -106,7 +112,8 @@ const HotelManage = () => {
         roomFormsRef.current以键值对存储，键是id，值是form实例
         */
         const roomsData = Object.values(roomFormsRef.current).map(form => form.getFieldsValue());
-        const cleanRoomsData = roomsData.map(roomData => removeUndefined(roomData))
+        const cleanRoomsData = roomsData.map(
+        roomData => removeUndefined(roomData))
         const cleanHotelData = removeUndefined(hotelData)
 
         const data = {...cleanHotelData, rooms: cleanRoomsData, merchant_id: 1, status: "pending"}
@@ -141,10 +148,10 @@ const HotelManage = () => {
                             </Form>
                         </div>
                         
-                        <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
+                        {/* <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
                             <RoomManage roomFormsRef={roomFormsRef} />
                         </div>
-                        
+                         */}
                         <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
                             <div style={{ textAlign: 'center', padding: '40px' }}>
                                 <h2>✅ 提交完成</h2>

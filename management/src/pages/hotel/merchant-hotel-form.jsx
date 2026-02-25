@@ -2,7 +2,7 @@ import react, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import CtripHeader from '../../components/ctripheader';
 import CtripSider from '../../components/ctripsider';
-import { Avatar, Layout, Form, Button, Input, Rate, Upload } from 'antd'
+import { Avatar, Layout, Form, Button, Input, Rate, Upload, Select } from 'antd'
 
 
 
@@ -17,6 +17,13 @@ const MerchantHotelForm = ({form}) => {
         '北京', '上海', '广州', '深圳', '杭州', '武汉', '西安', '南京', '成都', '天津',
         '重庆', '青岛', '大连', '厦门', '长沙', '济南', '郑州', '合肥', '福州', '台北'
     ]);
+
+    const [tagOptions, setTagOptions] = useState([{ value: 'WiFi' }, { value: '停车场' }, { value: '免费停车' }, { value: '早餐' }, { value: '接机服务' }]);
+    
+
+    const fetchTagOptions = async() => {
+        pass
+    }
 
     const {id} = useParams();
     console.log('id:', id)
@@ -104,7 +111,13 @@ const MerchantHotelForm = ({form}) => {
                     </Form.Item>
 
                     {/* <!-- 设施标签 --> */}
-                    
+                    <Form.Item
+                        label="设施标签"
+                        name="tags"
+                        rules={[{ required: true, message: '请输入设施标签' }]}
+                    >
+                        <Select placeholder="请选择设施标签" mode="multiple" options={tagOptions} />
+                    </Form.Item>
 
                     {/* <!-- 酒店图片上传 --> */}
                     <Form.Item

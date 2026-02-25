@@ -13,15 +13,16 @@ import { Button } from 'antd'
 
 
 //initialRooms:传入房间初始化列表
-const roomManage = ({roomFormsRef, initialRooms}) => {
+const roomManage = ({roomFormsRef, initialRooms, hotel_id}) => {
     const [roomForms, setRoomForms] = useState([])
     const [roomCount, setRoomCount] = useState(0)
 
-    
+    // if(!roomFormsRef) {
+    //     console.log("roomFormsRef is undefined")
+    // }
 
 
     function handleAddRoom() {
-        
         setRoomForms([...roomForms, {
             id: Date.now(),
             index: roomCount+1,
@@ -49,7 +50,7 @@ const roomManage = ({roomFormsRef, initialRooms}) => {
         onClose: () => handleRemoveRoom(roomItem.id),
         children: (
             <Card>
-                <RoomFormContent roomId={roomItem.id} roomFormsRef={roomFormsRef} />
+                <RoomFormContent roomId={roomItem.id} roomFormsRef={roomFormsRef} hotel_id={hotel_id} />
                 <Button onClick={() => handleRemoveRoom(roomItem.id)}>删除房间</Button>
             </Card>
         )
@@ -73,8 +74,14 @@ const roomManage = ({roomFormsRef, initialRooms}) => {
 
 
 
-const RoomFormContent = ({roomId, roomFormsRef}) => {
+const RoomFormContent = ({roomId, roomFormsRef, hotel_id}) => {
     const [form] = Form.useForm()
+
+    useEffect(()=> {
+        form.setFieldsValue({
+            hotel_id: hotel_id
+        })
+    }, [form, hotel_id])
     
     useEffect(()=> {
         roomFormsRef.current[roomId] = form
@@ -87,9 +94,6 @@ const RoomFormContent = ({roomId, roomFormsRef}) => {
     return (
         <Form form={form}>
                     <div className="room-details">
-                    <Form.Item label="酒店ID" name="hotel_id"><Input /></Form.Item>
-                   
-
                     <Form.Item label="房间名称" name="room_name" rules={[{ required: true, message: '请输入房间名称' }]}>
                         <Input />
                     </Form.Item>

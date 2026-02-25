@@ -1,6 +1,11 @@
 const pool = require('../config/database')
 
 
+const findMyHotels = async(merchant_id) => {
+    console.log('request in findMyHotels, merchant_id', merchant_id)
+    const [rows] = await pool.execute('SELECT * FROM hotel WHERE merchant_id = ?', [merchant_id])
+    return rows
+}
 
 //酒店操作
 const findHotelByName = async(name) => {
@@ -64,4 +69,12 @@ const updateRoom = async(roomData) => {
     return rows[0]
 }
 
-module.exports = {findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom}
+
+const updatePriceStart = async(hotel_id, minimumPrice) => {
+    const data = [minimumPrice, hotel_id]
+    const [rows] = await pool.execute('UPDATE hotel SET price_start = ? WHERE hotel_id = ?', data)
+    return rows[0]
+}
+
+
+module.exports = {findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom, findMyHotels}
