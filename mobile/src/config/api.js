@@ -31,6 +31,10 @@ export const API_ENDPOINTS = {
 
   // 预订相关
   BOOKINGS: '/bookings',                 // 预订相关操作
+
+  // 标签相关
+  TAGS: '/tags',                         // 获取所有标签
+  TAGS_HOT: '/tags/hot',                 // 获取热门标签
 }
 
 /**

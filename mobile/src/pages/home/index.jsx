@@ -744,8 +744,8 @@ export default function Home() {
                   min={0}
                   max={2000}
                   step={50}
-                  valueMin={searchParams.priceMin === -1 ? 0 : searchParams.priceMin}
-                  valueMax={searchParams.priceMax === -1 ? 2000 : searchParams.priceMax}
+                  valueMin={searchParams.priceMin}
+                  valueMax={searchParams.priceMax}
                   onChange={(mn, mx) => setSearchParams({ ...searchParams, priceMin: mn, priceMax: mx })}
                 />
               </View>

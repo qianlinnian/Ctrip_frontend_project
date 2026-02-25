@@ -16,7 +16,7 @@ exports.getList = async (req, res) => {
   } catch (error) {
     console.error('❌ 数据库查询失败:', error.message)
     res.status(500).json({ code: 500, message: '服务器错误' })
-  }
+    }
 }
 
 /**

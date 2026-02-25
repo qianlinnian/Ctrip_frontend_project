@@ -5,9 +5,10 @@ import { AtIcon } from 'taro-ui'
 import CalendarPicker from '../../components/CalendarPicker'
 import PriceRangeSlider from '../../components/PriceRangeSlider'
 import { searchHotels } from '../../services/hotel'
+import { getAllTags } from '../../services/tag'
 import './index.scss'
 
-// filter-bar 的四个 tab，key 与 API sortBy 参数对应
+// filter-bar 的 tab，key 与 API sortBy 参数对应
 const FILTER_TABS = [
   { key: null,           label: '综合排序', sub: null },
   {
@@ -28,6 +29,7 @@ const FILTER_TABS = [
       { key: 'distance_desc', label: '由远到近' },
     ]
   },
+  { key: 'tags', label: '筛选', sub: null, isTagFilter: true },
 ]
 
 
@@ -70,6 +72,10 @@ export default function HotelList() {
   const [showCalendar, setShowCalendar] = useState(false)
   const [draft, setDraft] = useState({})
 
+  // 标签筛选状态
+  const [hotTags, setHotTags] = useState([])
+  const [selectedTags, setSelectedTags] = useState([])
+
   // 从路由参数初始化，没有则从本地存储读取，然后请求 API
   useEffect(() => {
     const p = Taro.getCurrentInstance()?.router?.params || {}
@@ -95,12 +101,19 @@ export default function HotelList() {
       tags: p.tags ? decodeURIComponent(p.tags) : '', // 多标签筛选（逗号分隔）
     }
     
-    // 如果有标签参数，显示在搜索关键词中
+    // 如果有标签参数，设置已选标签
     if (initParams.tags) {
-      setSearchKeyword(initParams.tags.split(',').join(' '))
+      setSelectedTags(initParams.tags.split(',').filter(Boolean))
     }
     setParams(initParams)
     fetchHotels(initParams, 1, true)
+
+    // 获取所有标签
+    getAllTags().then(tags => {
+      setHotTags(tags || [])
+    }).catch(() => {
+      setHotTags([])
+    })
   }, [])
 
   // 获取酒店列表（支持分页）
@@ -169,6 +182,30 @@ export default function HotelList() {
   // 搜索结果直接使用 hotels（后端已过滤）
   const sorted = hotels
 
+  // 点击标签（只更新选中状态，不立即搜索）
+  const handleTagClick = (tagName) => {
+    if (selectedTags.includes(tagName)) {
+      setSelectedTags(selectedTags.filter(t => t !== tagName))
+    } else {
+      setSelectedTags([...selectedTags, tagName])
+    }
+  }
+
+  // 确认筛选（点击确定按钮时触发搜索）
+  const handleTagConfirm = () => {
+    const newParams = { ...params, tag: selectedTags.join(',') }
+    setParams(newParams)
+    setOpenTab(null)
+    fetchHotels(newParams, 1, true)
+  }
+
+  // 清除筛选
+  const handleTagClear = () => {
+    setSelectedTags([])
+    const newParams = { ...params, tag: '' }
+    setParams(newParams)
+    fetchHotels(newParams, 1, true)
+  }
 
   const goBack = () => Taro.reLaunch({ url: '/pages/home/index' })
 
@@ -241,22 +278,34 @@ export default function HotelList() {
       {/* 筛选排序栏 */}
       <View className="filter-bar">
         {FILTER_TABS.map((tab, idx) => {
+          // 筛选 tab 的激活状态：有选中的标签
+          const isTagActive = tab.isTagFilter && selectedTags.length > 0
           const isActive = tab.sub
             ? tab.sub.some(s => s.key === sortKey)
-            : sortKey === tab.key  // 综合排序：sortKey=null, tab.key=null
+            : (tab.isTagFilter ? isTagActive : sortKey === tab.key)
           const isOpen = openTab === tab.key
           return (
-            <View key={tab.key} className="filter-tab-wrap">
+            <View key={tab.key ?? 'default'} className="filter-tab-wrap">
               {idx > 0 && <View className="filter-divider" />}
               <View
                 className={`filter-item ${isActive ? 'active' : ''}`}
                 onClick={() => {
-                  if (!tab.sub) { setSortKey(null); setOpenTab(null); fetchHotels({ ...params, sortBy: null }, 1, true) }
-                  else setOpenTab(isOpen ? null : tab.key)
+                  if (tab.isTagFilter) {
+                    // 筛选 tab：展开/收起标签面板
+                    setOpenTab(isOpen ? null : 'tags')
+                  } else if (!tab.sub) {
+                    setSortKey(null); setOpenTab(null); fetchHotels({ ...params, sortBy: null }, 1, true)
+                  } else {
+                    setOpenTab(isOpen ? null : tab.key)
+                  }
                 }}
               >
-                <Text className="filter-text">{tab.label}</Text>
-                {tab.sub && (
+                <Text className="filter-text">
+                  {tab.isTagFilter && selectedTags.length > 0 
+                    ? `筛选(${selectedTags.length})` 
+                    : tab.label}
+                </Text>
+                {(tab.sub || tab.isTagFilter) && (
                   <AtIcon
                     value={isOpen ? 'chevron-up' : 'chevron-down'}
                     size='14'
@@ -285,7 +334,44 @@ export default function HotelList() {
       </View>
 
       {/* 点遮罩关闭子菜单 */}
-      {openTab && (
+      {openTab && openTab !== 'tags' && (
+        <View className="submenu-mask" onClick={() => setOpenTab(null)} />
+      )}
+
+      {/* 标签筛选展开面板 */}
+      {openTab === 'tags' && (
+        <View className="tag-filter-panel">
+          <View className="tag-filter-header">
+            <Text className="tag-filter-title">选择筛选条件</Text>
+            <View className="tag-filter-clear" onClick={handleTagClear}>
+              <Text className="tag-filter-clear-text">清除</Text>
+            </View>
+          </View>
+          <View className="tag-filter-content">
+            {hotTags.map(tag => {
+              const tagName = tag.name || tag.tag_name  // 兼容两种字段名
+              return (
+                <View 
+                  key={tag.id || tagName} 
+                  className={`tag-filter-item ${selectedTags.includes(tagName) ? 'active' : ''}`}
+                  onClick={() => handleTagClick(tagName)}
+                >
+                  <Text className="tag-filter-text">{tagName}</Text>
+                </View>
+              )
+            })}
+          </View>
+          <View className="tag-filter-footer">
+            <View className="tag-filter-btn-cancel" onClick={() => setOpenTab(null)}>
+              <Text>取消</Text>
+            </View>
+            <View className="tag-filter-btn-confirm" onClick={handleTagConfirm}>
+              <Text>确定</Text>
+            </View>
+          </View>
+        </View>
+      )}
+      {openTab === 'tags' && (
         <View className="submenu-mask" onClick={() => setOpenTab(null)} />
       )}
 
@@ -355,8 +441,8 @@ export default function HotelList() {
                 min={0}
                 max={2000}
                 step={50}
-                valueMin={draft.priceMin === -1 ? 0 : draft.priceMin}
-                valueMax={draft.priceMax === -1 ? 2000 : draft.priceMax}
+                valueMin={draft.priceMin}
+                valueMax={draft.priceMax}
                 onChange={(mn, mx) => setDraft(d => ({ ...d, priceMin: mn, priceMax: mx }))}
               />
             </View>

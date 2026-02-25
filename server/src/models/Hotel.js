@@ -7,32 +7,14 @@ const { calculateHotelDistances, calculateDistanceToPOI } = require('../services
 /**
  * 解析 images 字段，兼容 JSON 数组字符串和逗号分隔的纯 URL 字符串
  * 例如: '["url1","url2"]' 或 'url1,url2' 或 'url1'
- * 注意：URL 中可能包含逗号（如 loremflickr.com/800/600/hotel,interior）
  */
 function parseImages(raw) {
   if (!raw) return []
   const trimmed = raw.trim()
-  
-  // 尝试 JSON 解析
   if (trimmed.startsWith('[')) {
     try { return JSON.parse(trimmed) } catch (e) { /* fallback */ }
   }
-  
-  // 处理逗号分隔的 URL，但 URL 中可能包含逗号
-  // 使用正则匹配完整的 URL（以 http 开头，到下一个 http 或字符串结尾）
-  const urls = []
-  const regex = /https?:\/\/[^\s]+?(?=,https?:\/\/|$)/g
-  let match
-  while ((match = regex.exec(trimmed)) !== null) {
-    urls.push(match[0])
-  }
-  
-  // 如果正则没匹配到，回退到简单分割
-  if (urls.length === 0) {
-    return trimmed.split(',').map(s => s.trim()).filter(Boolean)
-  }
-  
-  return urls
+  return trimmed.split(',').map(s => s.trim()).filter(Boolean)
 }
 
 const Hotel = {
@@ -43,7 +25,7 @@ const Hotel = {
     const {
       location,
       keyword,
-      tag,         // 标签筛选
+      tag,         // 标签筛选（逗号分隔多个标签）
       nearBy,      // 附近搜索：地点名称（如"交通大学"）
       starLevel,
       minPrice,
@@ -53,11 +35,8 @@ const Hotel = {
       pageSize = 20
     } = params
 
-    // 支持多标签筛选（逗号分隔）
-    const tagList = tag ? tag.split(',').map(t => t.trim()).filter(Boolean) : []
-    
     let sql = `
-      SELECT DISTINCT
+      SELECT 
         h.hotel_id as id,
         h.hotel_name as name,
         h.city,
@@ -69,28 +48,11 @@ const Hotel = {
         h.cover_image,
         h.room_count,
         h.phone,
-        h.score,
-        h.create_time
+        h.score
       FROM hotel h
+      WHERE h.audit_status = 1 AND h.publish_status = 1
     `
-    
-    // 如果有标签筛选，需要 JOIN 标签表
-    if (tagList.length > 0) {
-      sql += `
-        INNER JOIN hotel_tag_relation htr ON h.hotel_id = htr.hotel_id
-        INNER JOIN tag t ON htr.tag_id = t.tag_id
-      `
-    }
-    
-    sql += ` WHERE h.audit_status = 1 AND h.publish_status = 1`
     const values = []
-
-    // 多标签筛选（OR 逻辑：匹配任意一个标签即可）
-    if (tagList.length > 0) {
-      const placeholders = tagList.map(() => '?').join(',')
-      sql += ` AND t.tag_name IN (${placeholders})`
-      values.push(...tagList)
-    }
 
     // 城市筛选
     if (location) {
@@ -135,28 +97,43 @@ const Hotel = {
       values.push(...stars)
     }
 
-    // 排序（距离排序在应用层处理，因为距离是通过 API 计算的）
-    const isDistanceSort = sortBy === 'distance_asc' || sortBy === 'distance_desc'
-    if (!isDistanceSort) {
-      switch (sortBy) {
-        case 'price_asc':
-          sql += ` ORDER BY h.price_start ASC`
-          break
-        case 'price_desc':
-          sql += ` ORDER BY h.price_start DESC`
-          break
-        case 'score_desc':
-          sql += ` ORDER BY score DESC`
-          break
-        case 'score_asc':
-          sql += ` ORDER BY score ASC`
-          break
-        default:
-          sql += ` ORDER BY h.create_time DESC`
+    // 标签筛选（支持多标签，逗号分隔）
+    if (tag) {
+      const tagNames = tag.split(',').filter(t => t.trim())
+      if (tagNames.length > 0) {
+        // 使用子查询筛选拥有指定标签的酒店
+        sql += ` AND h.hotel_id IN (
+          SELECT DISTINCT htr.hotel_id 
+          FROM hotel_tag_relation htr 
+          JOIN tag t ON htr.tag_id = t.tag_id 
+          WHERE t.tag_name IN (${tagNames.map(() => '?').join(',')})
+        )`
+        values.push(...tagNames)
       }
-    } else {
-      // 距离排序时，先按默认排序获取数据，后续在应用层排序
-      sql += ` ORDER BY h.create_time DESC`
+    }
+
+    // 排序
+    switch (sortBy) {
+      case 'price_asc':
+        sql += ` ORDER BY h.price_start ASC`
+        break
+      case 'price_desc':
+        sql += ` ORDER BY h.price_start DESC`
+        break
+      case 'score_desc':
+        sql += ` ORDER BY score DESC`
+        break
+      case 'score_asc':
+        sql += ` ORDER BY score ASC`
+        break
+      default:
+        // 综合排序：评分(40%) + 星级(30%) + 性价比(20%) + 新店加成(10%)
+        sql += ` ORDER BY (
+          COALESCE(h.score, 4.5) / 5.0 * 40
+          + h.hotel_level / 5.0 * 30
+          + (1 - LEAST(h.price_start, 2000) / 2000) * 20
+          + IF(DATEDIFF(NOW(), h.create_time) < 30, 10, 0)
+        ) DESC`
     }
 
     // 先获取总数
@@ -193,16 +170,7 @@ const Hotel = {
       // 普通搜索：计算到城市中心的距离
       hotels = await calculateHotelDistances(hotels, location)
     } else {
-      hotels = hotels.map(h => ({ ...h, distance: '—', distanceMeters: 0 }))
-    }
-
-    // 距离排序（应用层排序）
-    if (sortBy === 'distance_asc' || sortBy === 'distance_desc') {
-      hotels.sort((a, b) => {
-        const distA = a.distanceMeters || 0
-        const distB = b.distanceMeters || 0
-        return sortBy === 'distance_asc' ? distA - distB : distB - distA
-      })
+      hotels = hotels.map(h => ({ ...h, distance: '—' }))
     }
 
     return {
@@ -416,13 +384,12 @@ const Hotel = {
     let sql = `
       SELECT 
         h.hotel_id as id,
-        h.hotel_name as hotel_name,
+        h.hotel_name as name,
         h.city,
         h.hotel_address as address,
         h.hotel_level as star,
         h.price_start as price,
         h.images,
-        h.cover_image,
         h.score
       FROM hotel h
       WHERE h.audit_status = 1 AND h.publish_status = 1

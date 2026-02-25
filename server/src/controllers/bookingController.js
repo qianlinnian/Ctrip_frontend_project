@@ -18,7 +18,7 @@ exports.create = async (req, res) => {
   try {
     const data = await Booking.create({
       userId,
-      roomId,
+    roomId,
       startTime: checkInDate,
       endTime: checkOutDate,
       totalPrice: totalPrice || 0
@@ -78,9 +78,9 @@ exports.cancel = async (req, res) => {
   try {
     // 先检查预订是否存在
     const booking = await Booking.getDetail(id)
-    if (!booking) {
-      return res.status(404).json({ code: 404, message: '预订不存在' })
-    }
+  if (!booking) {
+    return res.status(404).json({ code: 404, message: '预订不存在' })
+  }
 
     await Booking.cancel(id)
     console.log('✅ 预订取消成功')

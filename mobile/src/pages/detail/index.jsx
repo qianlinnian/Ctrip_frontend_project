@@ -203,7 +203,7 @@ export default function HotelDetail() {
     }
   }
 
-  const goBack = () => Taro.navigateBack()
+  const goBack = () => Taro.navigateTo({ url: '/pages/list/index' })
 
   if (!hotel) return <View className="detail-loading"><Text>加载中…</Text></View>
 
