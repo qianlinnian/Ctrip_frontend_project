@@ -4,6 +4,19 @@
 const pool = require('../config/db')
 const { calculateHotelDistances, calculateDistanceToPOI } = require('../services/amap')
 
+/**
+ * 解析 images 字段，兼容 JSON 数组字符串和逗号分隔的纯 URL 字符串
+ * 例如: '["url1","url2"]' 或 'url1,url2' 或 'url1'
+ */
+function parseImages(raw) {
+  if (!raw) return []
+  const trimmed = raw.trim()
+  if (trimmed.startsWith('[')) {
+    try { return JSON.parse(trimmed) } catch (e) { /* fallback */ }
+  }
+  return trimmed.split(',').map(s => s.trim()).filter(Boolean)
+}
+
 const Hotel = {
   /**
    * 获取酒店列表（支持筛选、排序、分页、附近搜索）
@@ -12,6 +25,7 @@ const Hotel = {
     const {
       location,
       keyword,
+      tag,         // 标签筛选
       nearBy,      // 附近搜索：地点名称（如"交通大学"）
       starLevel,
       minPrice,
@@ -21,8 +35,11 @@ const Hotel = {
       pageSize = 20
     } = params
 
+    // 支持多标签筛选（逗号分隔）
+    const tagList = tag ? tag.split(',').map(t => t.trim()).filter(Boolean) : []
+    
     let sql = `
-      SELECT 
+      SELECT DISTINCT
         h.hotel_id as id,
         h.hotel_name as name,
         h.city,
@@ -34,11 +51,28 @@ const Hotel = {
         h.cover_image,
         h.room_count,
         h.phone,
-        h.score
+        h.score,
+        h.create_time
       FROM hotel h
-      WHERE h.audit_status = 1 AND h.publish_status = 1
     `
+    
+    // 如果有标签筛选，需要 JOIN 标签表
+    if (tagList.length > 0) {
+      sql += `
+        INNER JOIN hotel_tag_relation htr ON h.hotel_id = htr.hotel_id
+        INNER JOIN tag t ON htr.tag_id = t.tag_id
+      `
+    }
+    
+    sql += ` WHERE h.audit_status = 1 AND h.publish_status = 1`
     const values = []
+
+    // 多标签筛选（OR 逻辑：匹配任意一个标签即可）
+    if (tagList.length > 0) {
+      const placeholders = tagList.map(() => '?').join(',')
+      sql += ` AND t.tag_name IN (${placeholders})`
+      values.push(...tagList)
+    }
 
     // 城市筛选
     if (location) {
@@ -120,8 +154,8 @@ const Hotel = {
     // 处理 images 字段
     let hotels = rows.map(h => ({
       ...h,
-      image: h.cover_image || (h.images ? h.images.split(',')[0] : null),
-      images: h.images ? h.images.split(',') : [],
+      image: h.cover_image || parseImages(h.images)[0] || null,
+      images: parseImages(h.images),
       score: h.score ? Number(Number(h.score).toFixed(1)) : 4.5,
       facilities: tagsMap[h.id] || [],  // 使用数据库标签
       tags: tagsMap[h.id] || []         // 使用数据库标签
@@ -162,7 +196,7 @@ const Hotel = {
         h.images, 
         h.phone,
         h.room_count,
-        m.merchant_name
+        m.username as merchant_name
       FROM hotel h
       LEFT JOIN merchant m ON h.merchant_id = m.merchant_id
       WHERE h.hotel_id = ?
@@ -182,7 +216,7 @@ const Hotel = {
 
     return {
       ...hotel,
-      images: hotel.images ? hotel.images.split(',') : [],
+      images: parseImages(hotel.images),
       facilities: tags,  // 使用数据库中的标签作为设施
       rooms,
       tags,
@@ -210,7 +244,7 @@ const Hotel = {
 
     return rows.map((r, idx) => ({
       ...r,
-      image: r.images ? r.images.split(',')[0] : null,
+      image: parseImages(r.images)[0] || null,
       originalPrice: Math.round(r.price * 1.15),
       area: 25 + idx * 5,
       floor: `${3 + idx * 2}-${8 + idx * 3}层`,
@@ -318,8 +352,8 @@ const Hotel = {
 
       let hotels = rows.map(h => ({
         ...h,
-        image: h.cover_image || (h.images ? h.images.split(',')[0] : null),
-        images: h.images ? h.images.split(',') : [],
+        image: h.cover_image || (parseImages(h.images)[0] || null),
+        images: parseImages(h.images),
         facilities: tagsMap[h.id] || [],
         tags: tagsMap[h.id] || []
       }))
@@ -349,12 +383,13 @@ const Hotel = {
     let sql = `
       SELECT 
         h.hotel_id as id,
-        h.hotel_name as name,
+        h.hotel_name as hotel_name,
         h.city,
         h.hotel_address as address,
         h.hotel_level as star,
         h.price_start as price,
         h.images,
+        h.cover_image,
         h.score
       FROM hotel h
       WHERE h.audit_status = 1 AND h.publish_status = 1
@@ -377,8 +412,8 @@ const Hotel = {
 
     let hotels = rows.map(h => ({
       ...h,
-      image: h.images ? h.images.split(',')[0] : null,
-      images: h.images ? h.images.split(',') : [],
+      image: parseImages(h.images)[0] || null,
+      images: parseImages(h.images),
       facilities: tagsMap[h.id] || [],
       tags: tagsMap[h.id] || []
     }))

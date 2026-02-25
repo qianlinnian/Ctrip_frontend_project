@@ -214,24 +214,47 @@ export default function Home() {
   const debounceTimerRef = useRef(null)
   const [showGuestRoomPicker, setShowGuestRoomPicker] = useState(false)
 
-  // Banner 数据
-  const bannerList = [
-    {
-      id: 1,
-      image: 'https://via.placeholder.com/750x300/FF6B35/ffffff?text=酒店折扣',
-      title: '酒店折扣'
-    },
-    {
-      id: 2,
-      image: 'https://via.placeholder.com/750x300/4ECDC4/ffffff?text=周末优惠',
-      title: '周末优惠'
-    },
-    {
-      id: 3,
-      image: 'https://via.placeholder.com/750x300/556270/ffffff?text=春节特惠',
-      title: '春节特惠'
+  // Banner 数据（从数据库获取推荐酒店）
+  const [bannerList, setBannerList] = useState([
+    // 默认占位数据，防止初始渲染空白
+    { id: 1, image: 'https://loremflickr.com/750/300/hotel?lock=1', title: '加载中...' },
+    { id: 2, image: 'https://loremflickr.com/750/300/hotel?lock=2', title: '加载中...' },
+    { id: 3, image: 'https://loremflickr.com/750/300/hotel?lock=3', title: '加载中...' },
+  ])
+
+  // 获取推荐酒店作为 Banner
+  useEffect(() => {
+    const fetchBannerHotels = async () => {
+      try {
+        const res = await Taro.request({
+          url: 'http://localhost:5000/api/hotels/recommend',
+          method: 'GET',
+          data: { limit: 5 }
+        })
+        if (res.data && res.data.data && res.data.data.length > 0) {
+          const hotels = res.data.data.slice(0, 5) // 最多取5个
+          const banners = hotels.map(hotel => ({
+            id: hotel.id,
+            image: hotel.cover_image || `https://loremflickr.com/750/300/hotel?lock=${hotel.id}`,
+            title: hotel.hotel_name
+          }))
+          setBannerList(banners)
+        }
+      } catch (error) {
+        console.log('获取 Banner 酒店失败，使用默认图片', error)
+      }
     }
-  ]
+    fetchBannerHotels()
+  }, [])
+
+  // 点击 Banner 跳转到酒店详情页
+  const handleBannerClick = (hotelId) => {
+    const p = searchParams
+    Taro.navigateTo({
+      url: `/pages/detail/index?id=${hotelId}&checkInDate=${p.checkInDate}&checkOutDate=${p.checkOutDate}&nights=${p.nights}&guests=${p.guests}&rooms=${p.rooms}`
+    })
+  }
+
   const getCurrentLocation = () => {
     setIsLocating(true)
     setCurrentLocation('定位中...')
@@ -240,13 +263,13 @@ export default function Home() {
     Taro.getLocation({
       type: 'wgs84',
       success: async (res) => {
-        console.log('📍 定位成功:', res)
-        console.log('🔧 当前平台:', process.env.TARO_ENV)
+        console.log('定位成功:', res)
+        console.log('当前平台:', process.env.TARO_ENV)
 
         try {
           const city = await convertLocationToCity(res.longitude, res.latitude)
 
-          console.log('✅ 定位城市:', city)
+          console.log('定位城市:', city)
 
           setCurrentLocation(city)
           setSearchParams({
@@ -300,8 +323,41 @@ export default function Home() {
     }
   }
 
-  // 快捷标签
-  const quickTags = ['免费早餐', '上海环球影城', '上海迪士尼乐园']
+  // 快捷标签（从 API 获取）
+  const [quickTags, setQuickTags] = useState(['免费WiFi', '游泳池', '健身房']) // 默认值
+  const [selectedTags, setSelectedTags] = useState([]) // 选中的标签
+  
+  // 获取热门标签
+  useEffect(() => {
+    const fetchHotTags = async () => {
+      try {
+        const res = await Taro.request({
+          url: 'http://localhost:5000/api/tags/hot',
+          method: 'GET',
+          data: { limit: 8 }
+        })
+        if (res.data && res.data.data && res.data.data.length > 0) {
+          setQuickTags(res.data.data.map(t => t.name))
+        }
+      } catch (error) {
+        console.log('获取热门标签失败，使用默认标签', error)
+      }
+    }
+    fetchHotTags()
+  }, [])
+
+  // 点击标签切换选中状态
+  const handleTagClick = (tagName) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tagName)) {
+        // 已选中，取消选中
+        return prev.filter(t => t !== tagName)
+      } else {
+        // 未选中，添加选中
+        return [...prev, tagName]
+      }
+    })
+  }
 
   // 格式化日期显示
   const formatDateDisplay = (dateStr) => {
@@ -387,9 +443,14 @@ export default function Home() {
   // 处理查询，跳转到列表页
   const handleSearch = () => {
     const p = searchParams
-    Taro.navigateTo({
-      url: `/pages/list/index?destination=${encodeURIComponent(p.destination)}&checkInDate=${p.checkInDate}&checkOutDate=${p.checkOutDate}&nights=${p.nights}&guests=${p.guests}&rooms=${p.rooms}&starLevel=${p.starLevel}&priceMin=${p.priceMin}&priceMax=${p.priceMax}`
-    })
+    let url = `/pages/list/index?destination=${encodeURIComponent(p.destination)}&checkInDate=${p.checkInDate}&checkOutDate=${p.checkOutDate}&nights=${p.nights}&guests=${p.guests}&rooms=${p.rooms}&starLevel=${p.starLevel}&priceMin=${p.priceMin}&priceMax=${p.priceMax}`
+    
+    // 如果有选中的标签，添加到 URL
+    if (selectedTags.length > 0) {
+      url += `&tags=${encodeURIComponent(selectedTags.join(','))}`
+    }
+    
+    Taro.navigateTo({ url })
   }
 
   const checkInDateObj = formatDateDisplay(searchParams.checkInDate)
@@ -397,19 +458,25 @@ export default function Home() {
 
   return (
     <View className="home">
-      {/* 顶部 Banner */}
+      {/* 顶部 Banner - 点击跳转酒店详情 */}
       <Swiper
         className="banner-swiper"
         indicatorColor="rgba(255, 255, 255, 0.5)"
         indicatorActiveColor="#ffffff"
+        indicatorDots
         circular
         autoplay
-        interval={3000}
+        interval={4000}
         duration={500}
       >
         {bannerList.map((banner) => (
-          <SwiperItem key={banner.id}>
-            <Image className="banner-image" src={banner.image} mode="aspectFill" />
+          <SwiperItem key={banner.id} onClick={() => handleBannerClick(banner.id)}>
+            <View className="banner-item">
+              <Image className="banner-image" src={banner.image} mode="aspectFill" />
+              <View className="banner-title-overlay">
+                <Text className="banner-title-text">{banner.title}</Text>
+              </View>
+            </View>
           </SwiperItem>
         ))}
       </Swiper>
@@ -491,10 +558,14 @@ export default function Home() {
           </Text>
         </View>
 
-        {/* 快捷标签 */}
+        {/* 快捷标签 - 点击选中作为筛选条件 */}
         <View className="quick-tags">
           {quickTags.map((tag, index) => (
-            <View key={index} className="tag-item">
+            <View 
+              key={index} 
+              className={`tag-item ${selectedTags.includes(tag) ? 'selected' : ''}`} 
+              onClick={() => handleTagClick(tag)}
+            >
               <Text className="tag-text">{tag}</Text>
             </View>
           ))}

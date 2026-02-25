@@ -82,6 +82,12 @@ export default function HotelList() {
       starLevel: Number(p.starLevel) || saved.starLevel || 0,
       priceMin: p.priceMin !== undefined ? Number(p.priceMin) : (saved.priceMin ?? -1),
       priceMax: p.priceMax !== undefined ? Number(p.priceMax) : (saved.priceMax ?? -1),
+      tags: p.tags ? decodeURIComponent(p.tags) : '', // 多标签筛选（逗号分隔）
+    }
+    
+    // 如果有标签参数，显示在搜索关键词中
+    if (initParams.tags) {
+      setSearchKeyword(initParams.tags.split(',').join(' '))
     }
     setParams(initParams)
     fetchHotels(initParams, 1, true)

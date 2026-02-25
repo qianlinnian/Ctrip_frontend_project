@@ -34,7 +34,7 @@ exports.getDetail = async (req, res) => {
     }
     res.status(404).json({ code: 404, message: '酒店不存在' })
   } catch (error) {
-    console.error('❌ 数据库查询失败:', error.message)
+    console.error('❌ 酒店详情查询失败:', error)
     res.status(500).json({ code: 500, message: '服务器错误' })
   }
 }

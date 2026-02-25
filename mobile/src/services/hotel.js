@@ -30,6 +30,7 @@ export async function searchHotels(params) {
     priceMax,
     sortBy,
     keyword,
+    tag,         // 标签筛选
     nearBy,      // 附近搜索：地点名称
     page = 1,
     pageSize = 20,
@@ -50,6 +51,8 @@ export async function searchHotels(params) {
   if (priceMax != null && priceMax !== -1) query.maxPrice = priceMax
   if (sortBy) query.sortBy = sortBy
   if (keyword) query.keyword = keyword
+  if (tag) query.tag = tag  // 单标签筛选
+  if (params.tags) query.tag = params.tags  // 多标签筛选（逗号分隔）
   if (nearBy) query.nearBy = nearBy
 
   const res = await get('/hotels/list', query)
