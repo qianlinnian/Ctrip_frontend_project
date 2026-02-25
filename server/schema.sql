@@ -42,19 +42,22 @@ CREATE TABLE hotel (
   room_count INT NOT NULL,
   description TEXT,
   images TEXT,
+  cover_image VARCHAR(500),
+  score DECIMAL(2,1) DEFAULT 4.5,
   audit_status INT DEFAULT 0,
   publish_status INT DEFAULT 0,
   reject_reason VARCHAR(255),
   offline_reason VARCHAR(255),
   create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (merchant_id) REFERENCES merchant(merchant_id)
-);
+  FOREIGN KEY (merchant_id) REFERENCES merchant(merchant_id),
+  FULLTEXT INDEX ft_hotel_search (hotel_name, hotel_address, city) WITH PARSER ngram
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 5. 房型字典表
 CREATE TABLE room_type (
   type_id BIGINT PRIMARY KEY AUTO_INCREMENT,
   type_name VARCHAR(50) NOT NULL UNIQUE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 6. 酒店房型表
 CREATE TABLE hotel_room (
@@ -66,7 +69,7 @@ CREATE TABLE hotel_room (
   images TEXT,
   FOREIGN KEY (hotel_id) REFERENCES hotel(hotel_id),
   FOREIGN KEY (room_type_id) REFERENCES room_type(type_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 7. 房间预订表
 CREATE TABLE room_booking (
@@ -80,13 +83,13 @@ CREATE TABLE room_booking (
   booking_time DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES user(user_id),
   FOREIGN KEY (room_id) REFERENCES hotel_room(room_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 8. 标签表
 CREATE TABLE tag (
   tag_id BIGINT PRIMARY KEY AUTO_INCREMENT,
   tag_name VARCHAR(50) NOT NULL UNIQUE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 9. 酒店标签关联表
 CREATE TABLE hotel_tag_relation (
@@ -96,4 +99,4 @@ CREATE TABLE hotel_tag_relation (
   FOREIGN KEY (hotel_id) REFERENCES hotel(hotel_id),
   FOREIGN KEY (tag_id) REFERENCES tag(tag_id),
   UNIQUE KEY unique_hotel_tag (hotel_id, tag_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

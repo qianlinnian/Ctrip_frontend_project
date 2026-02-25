@@ -46,7 +46,7 @@
 
 | 端 | 技术 |
 |---|---|
-| 移动端 | React 18 + Taro 3 |
+| 移动端 | React 18 + Taro 4 |
 | PC端 | React 18 + Vite |
 | 后端 | Node.js 18 + Express 4 + MySQL + JWT |
 

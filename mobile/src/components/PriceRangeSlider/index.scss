@@ -1,0 +1,91 @@
+.price-slider {
+  padding: 8px 0 16px;
+
+  .slider-value-row {
+    margin-bottom: 24px;
+    text-align: center;
+
+    .slider-value-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: #0086F6;
+    }
+  }
+
+  .slider-track-wrapper {
+    position: relative;
+    height: 40px;
+    margin: 0 16px;
+    overflow: visible;
+
+    .slider-track {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      left: 0;
+      right: 0;
+      height: 6px;
+      background-color: #e0e0e0;
+      border-radius: 3px;
+    }
+
+    .slider-range {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 6px;
+      background-color: #0086F6;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+
+    .slider-handle {
+      position: absolute;
+      top: 50%;
+      width: 6px;
+      height: 28px;
+      background-color: #0086F6;
+      border-radius: 3px;
+      z-index: 3;
+      // 扩大触摸热区
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 44px;
+        height: 44px;
+      }
+    }
+
+    // 左把手：把手右边缘对齐蓝条左端
+    .slider-handle-left {
+      transform: translate(-100%, -50%);
+    }
+
+    // 右把手：把手左边缘对齐蓝条右端
+    .slider-handle-right {
+      transform: translate(0%, -50%);
+
+      // 热区向右额外扩展，确保在最右端也能点到
+      &::before {
+        width: 56px;
+        left: 0;
+        transform: translate(-20%, -50%);
+      }
+    }
+  }
+
+  // 刻度：固定三个位置，不用绝对定位
+  .slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin: 6px 16px 0;
+
+    .tick-label {
+      font-size: 18px;
+      color: #bbb;
+    }
+  }
+}
