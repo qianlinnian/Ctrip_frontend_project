@@ -1,5 +1,4 @@
-const { findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom, findMyHotels } = require('../models/hotelModule.js')
-
+const { findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom, findMyHotels, updatePriceStart, findHotelById } = require('../models/hotelModule.js')
 
 
 
@@ -39,9 +38,10 @@ exports.updateHotelAndRoom = async (req, res) => {
 
 
 
-
+//新增酒店(基础信息)
 exports.addHotel = async(req, res) => {
 
+    //查询酒店名称是否已存在
     const existHotel = await findHotelByName(req.body.name)
     if(existHotel) {
         return res.status(400).json({messaage: 'Hotel name already exist'})
@@ -56,6 +56,8 @@ exports.addHotel = async(req, res) => {
     res.status(200).json({message: 'Hotel added successfully', hotel: addHotel})
 }
 
+
+//获取商户名下酒店列表
 exports.getMyHotels = async (req, res) => {
     const {merchant_id} = req.body
 
@@ -66,6 +68,25 @@ exports.getMyHotels = async (req, res) => {
     } else {
         return res.status(200).json({message: 'Hotels found successfully', hotels})
     }
-
 }
+
+
+//根据id获取酒店信息&&房间信息
+exports.getHotelInfo = async (req, res) => {
+    const {hotel_id} = req.body
+    const hotelResult = await findHotelById(hotel_id)
+    if(!hotelResult) {
+        return res.status(200).json({message: 'Hotel found successfully', hotel: hotelResult})
+    } else {
+        return res.status(200).json({message: 'Hotel found successfully', hotel})
+    }
+
+    const roomsResult = await findHotelRoom(hotel_id)
+    if(!roomsResult) {
+        return res.status(200).json({message: 'Rooms found successfully', rooms: roomsResult})
+    } else {
+        return res.status(200).json({message: 'Rooms found successfully', rooms: roomsResult})
+    }
+}
+
 

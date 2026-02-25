@@ -13,6 +13,11 @@ const findHotelByName = async(name) => {
     return rows[0]
 }
 
+const findHotelById = async(hotelid) => {
+    const [rows] = await pool.execute('SELECT * FROM hotel WHERE hotel_id = ?', [hotelid])
+    return rows[0]
+}
+
 
 const findHotelRoom = async(hotelid) => {
     const [rows] = await pool.execute('SELECT * FROM room WHERE hotel_id = ?', [hotelid])
@@ -22,15 +27,16 @@ const findHotelRoom = async(hotelid) => {
 
 
 
+
 const addHotel = async(hotelData) => {
-    const {merchant_id, name, city, address, star, phone, description, images, license, status} = hotelData
+    const {merchant_id, hotel_name, city, hotel_address, score, phone, description, images, cover_images, audit_status, publish_status} = hotelData
     //console.log('addHotel:', hotelData)
-    if(!merchant_id || !name || !city || !address || !phone || !description || !images || !license || !status) {
+    if(!merchant_id || !hotel_name || !city || !hotel_address || !phone || !description || !images || !cover_images || !audit_status || !publish_status) {
         console.log('hotelData Missing required fields', hotelData)
     }
-    const data = [merchant_id, name, city, address, star, phone, description, images, license, status]
+    const data = [merchant_id, hotel_name, city, hotel_address, score, phone, description, images, cover_images, audit_status, publish_status]
     console.log('data', data)
-    const [rows] = await pool.execute('INSERT INTO hotel (merchant_id, name, city, address, star, phone, description, images, license, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
+    const [rows] = await pool.execute('INSERT INTO hotel (merchant_id, hotel_name, city, hotel_address, score, phone, description, images, cover_images, audit_status, publish_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', data)
     
     return rows
 }
@@ -40,8 +46,8 @@ const addHotel = async(hotelData) => {
 
 
 const updateHotel = async(hotelData) => {
-    const {merchant_id, name, city, address, star, phone, description, images, liscense, status } = hotelData
-    const updateData = [merchant_id, name, city, address, star, phone, description, images, liscense, status, name]
+    const {merchant_id, hotel_name, city, hotel_address, score, phone, description, images, cover_images, audit_status, publish_status} = hotelData
+    const updateData = [merchant_id, hotel_name, city, hotel_address, score, phone, description, images, cover_images, audit_status, publish_status, hotel_name]
 
     console.log('updateData:', updateData)
     const [rows] = await pool.execute('UPDATE hotel SET merchant_id = ?, name = ?, city = ?, address = ?, star = ?, phone = ?, description = ?, images = ?, liscense = ?, status = ? WHERE name = ?', updateData)
@@ -55,8 +61,8 @@ const updateHotel = async(hotelData) => {
 //房间操作
 const addRoom = async(roomData) => {
     console.log('addRoom:', roomData)
-    const {hotel_id, room_type, price, room_count, room_name} = roomData
-    const data = [hotel_id, room_type, price, room_count, room_name]
+    const {hotel_id, room_type, price_start, room_count, room_name} = roomData
+    const data = [hotel_id, room_type, price_start, room_count, room_name]
     console.log('roomdata', data)
     const [rows] = await pool.execute('INSERT INTO hotel_room (hotel_id,room_type, price,room_count, room_name) VALUES (?, ?, ?, ?, ?)', data)
     return rows
@@ -77,4 +83,4 @@ const updatePriceStart = async(hotel_id, minimumPrice) => {
 }
 
 
-module.exports = {findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom, findMyHotels}
+module.exports = {findHotelByName, findHotelRoom, addHotel, updateHotel, addRoom, updateRoom, findMyHotels, updatePriceStart, findHotelById}

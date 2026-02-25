@@ -3,9 +3,8 @@ const express = require('express')
 const router = express.Router()
 
 
-//路由
-router.post('/login', authController.login)
-router.post('/register', authController.register)
+router.post('/login', authController.login) //登入路由
+router.post('/register', authController.register) //注册路由
 
 
 
