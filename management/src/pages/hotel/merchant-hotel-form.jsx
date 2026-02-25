@@ -2,13 +2,15 @@ import react, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import CtripHeader from '../../components/ctripheader';
 import CtripSider from '../../components/ctripsider';
-import { Avatar, Layout, Form, Button, Input, Rate, Upload } from 'antd'
+import { Avatar, Layout, Form, Button, Input, Rate, Upload, Select } from 'antd'
 
 
 
 const { Header, Content, Sider } = Layout;
 
-const MerchantHotelForm = () => {
+
+//onSubmit : 父组件传递的的回调函数
+const MerchantHotelForm = ({form}) => {
 
 
     const [cityList, setCityList] = useState([
@@ -16,18 +18,15 @@ const MerchantHotelForm = () => {
         '重庆', '青岛', '大连', '厦门', '长沙', '济南', '郑州', '合肥', '福州', '台北'
     ]);
 
+    const [tagOptions, setTagOptions] = useState([{ value: 'WiFi' }, { value: '停车场' }, { value: '免费停车' }, { value: '早餐' }, { value: '接机服务' }]);
+    
+
+    const fetchTagOptions = async() => {
+        pass
+    }
+
     const {id} = useParams();
     console.log('id:', id)
-    const [formData, setFormData] = useState({
-        name: '',
-        city: '',
-        address: '',
-        price: '',
-        stars: '',
-        description: '',
-        phone: '',
-
-    });
 
     useEffect(() => {
         if (id) {
@@ -48,123 +47,112 @@ const MerchantHotelForm = () => {
         }
     };
 
+    // function handleSubmit() {
+    //     if(onSubmit) {
+    //         onSubmit(formData);
+    //     }
+    // }
+
     return (
         <>
-                        {/* <!-- 表单卡片 --> */}
-                        <div className="card" style={{ maxWidth: '900px', margin: '0 auto' }}>
+            {/* <!-- 表单卡片 --> */}
+            <div className="card" style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-                            <h3 style={{ marginBottom: '24px', fontSize: '18px', color: 'var(--text-primary)' }}>
-                                基本信息
-                            </h3>
-                            <Form id="hotelForm">
+                <h3 style={{ marginBottom: '24px', fontSize: '18px', color: 'var(--text-primary)' }}>
+                    基本信息
+                </h3>
+                <Form id="hotelForm" form={form}>
 
-                                {/* <!-- 酒店名称 --> */}
-                                <Form.Item
-                                    label="酒店名称"
-                                    name="name"
-                                    rules={[{ required: true, message: '请输入酒店名称' }]}
-                                >
-                                    <Input placeholder="请输入酒店名称" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                </Form.Item>
+                    {/* <!-- 酒店名称 --> */}
+                    <Form.Item
+                        label="酒店名称"
+                        name="name"
+                        rules={[{ required: true, message: '请输入酒店名称' }]}>
+                        <Input placeholder="请输入酒店名称"/>
+                    </Form.Item>
 
+                    {/* <!-- 所属城市 --> */}
+                    <Form.Item label='所属城市' 
+                    name='city'
+                    rules={[{required: true, message: '请输入所属城市'}]}>
+                        <Input placeholder="请输入所属城市"  />
+                    </Form.Item>
+
+                    {/* <!-- 详细地址 --> */}
+                    <Form.Item
+                        label="详细地址"
+                        name="address"
+                        rules={[{ required: true, message: '请输入详细地址' }]}
+                    >
+                        <Input placeholder="请输入详细地址（街道、门牌号）" />
+                    </Form.Item>
+
+                    {/* <!-- 酒店星级 --> */}
+                    <Form.Item name="star">
+                        <Rate />
                         
+                    </Form.Item>
+                    {/* <!-- 联系电话 --> */}
+                    <Form.Item
+                        label="联系电话"
+                        name="phone"
+                        rules={[{ required: true, message: '请输入联系电话' }]}
+                    >
+                        <Input placeholder="请输入酒店联系电话" />
+                    </Form.Item>
 
-                                {/* <!-- 所属城市 --> */}
-                                <Form.Item label='所属城市'>
-                                    <Input placeholder="请输入所属城市" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
-                                </Form.Item>
+                    {/* <!-- 酒店简介 --> */}
+                    <Form.Item
+                        label="酒店简介"
+                        name="description"
+                        rules={[{ required: true, message: '请输入酒店简介' }]}
+                    >
+                        <Input placeholder="请输入酒店简介"  />
+                    </Form.Item>
 
-                                {/* <!-- 详细地址 --> */}
-                                <Form.Item
-                                    label="详细地址"
-                                    name="address"
-                                    rules={[{ required: true, message: '请输入详细地址' }]}
-                                >
-                                    <Input placeholder="请输入详细地址（街道、门牌号）" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
-                                </Form.Item>
+                    {/* <!-- 设施标签 --> */}
+                    <Form.Item
+                        label="设施标签"
+                        name="tags"
+                        rules={[{ required: true, message: '请输入设施标签' }]}
+                    >
+                        <Select placeholder="请选择设施标签" mode="multiple" options={tagOptions} />
+                    </Form.Item>
 
-                                {/* <!-- 酒店星级 --> */}
-                                <Form.Item>
-                                    <Rate />
-                                    
-                                </Form.Item>
+                    {/* <!-- 酒店图片上传 --> */}
+                    <Form.Item
+                        label="酒店图片"
+                        name="images"
+                        rules={[{ required: false, message: '请上传酒店图片' }]}
+                    >
+                        <Upload
+                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                            listType="picture-card"
+                            maxCount={5}
+                        >
+                            <p>点击上传酒店图片</p>
+                        </Upload>
+                    </Form.Item>
 
-                                {/* <!-- 房间数量 --> */}
-                                <Form.Item
-                                    label="房间数量"
-                                    name="roomCount"
-                                    rules={[{ required: true, message: '请输入房间数量' }]}
-                                >
-                                    <Input placeholder="请输入房间总数" value={formData.roomCount} onChange={(e) => setFormData({ ...formData, roomCount: e.target.value })} />
-                                </Form.Item>
+                    {/* <!-- 营业执照上传 --> */}
+                    <Form.Item
+                        label="营业执照"
+                        name="license"
+                        rules={[{ required: false, message: '请上传营业执照' }]}
+                    >
+                        <Upload
+                            action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                            listType="picture-card"
+                            maxCount={5}
+                        >
+                            <p>点击上传营业执照扫描件</p>
+                        </Upload>
+                    </Form.Item>
+                </Form>
 
-                                {/* <!-- 起始价格 --> */}
-                                <Form.Item
-                                    label="起始价格（元/晚）"
-                                    name="price"
-                                    rules={[{ required: true, message: '请输入起始价格' }]}
-                                >
-                                    <Input placeholder="请输入最低房价" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} />
-                                </Form.Item>
-                                {/* <!-- 联系电话 --> */}
-                                <Form.Item
-                                    label="联系电话"
-                                    name="phone"
-                                    rules={[{ required: true, message: '请输入联系电话' }]}
-                                >
-                                    <Input placeholder="请输入酒店联系电话" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-                                </Form.Item>
-
-                                {/* <!-- 酒店简介 --> */}
-                                <Form.Item
-                                    label="酒店简介"
-                                    name="description"
-                                    rules={[{ required: true, message: '请输入酒店简介' }]}
-                                >
-                                    <Input placeholder="请输入酒店简介" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-                                </Form.Item>
-
-                                {/* <!-- 设施标签 --> */}
-                                
-
-                                {/* <!-- 酒店图片上传 --> */}
-                                <Form.Item
-                                    label="酒店图片"
-                                    name="images"
-                                    rules={[{ required: true, message: '请上传酒店图片' }]}
-                                >
-                                    <Upload
-                                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                                        listType="picture-card"
-                                        maxCount={5}
-                                    >
-                                        <p>点击上传酒店图片</p>
-                                    </Upload>
-                                </Form.Item>
-
-                                {/* <!-- 营业执照上传 --> */}
-                                <Form.Item
-                                    label="营业执照"
-                                    name="license"
-                                    rules={[{ required: true, message: '请上传营业执照' }]}
-                                >
-                                    <Upload
-                                        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
-                                        listType="picture-card"
-                                        maxCount={5}
-                                    >
-                                        <p>点击上传营业执照扫描件</p>
-                                    </Upload>
-                                </Form.Item>
-
-                                
-
-                            </Form>
-
-                        </div>
+            </div>
         </>
     )
 };
-
 
 export default MerchantHotelForm;

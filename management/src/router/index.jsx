@@ -6,6 +6,9 @@ import MerchantHotelForm from "../pages/hotel/merchant-hotel-form.jsx";
 import AuditPage from "../pages/audit/audit.jsx";
 import RoomManage from "../pages/hotel/room-manage.jsx";
 import HotelManage from "../pages/hotel/hotel-manage.jsx";
+import EditHotelForm from "../pages/hotel/edit-hotel-form.jsx";
+import PrivateRoute from "../components/PrivateRoute.jsx";
+
 
 
 
@@ -20,17 +23,37 @@ const router = createBrowserRouter([
     },
     {
         path: '/merchant-dashboard',
-        element: <Dashboard />,
+        element: (
+            <PrivateRoute>
+                <Dashboard />
+            </PrivateRoute>
+        )
     },
     {
         path: '/audit',
-        element: <AuditPage />,
+        element: (
+            <PrivateRoute>
+                <AuditPage />
+            </PrivateRoute>
+        )
     },
     //酒店管理
     {
         path: '/merchant-dashboard/hotel-manage',
-        element: <HotelManage />,
+        element: (
+            <PrivateRoute>
+                <HotelManage />
+            </PrivateRoute>
+        )
     },
+    {
+        path: '/merchant-dashboard/edit',
+        element: (
+            <PrivateRoute>
+                <EditHotelForm />
+            </PrivateRoute>
+        )
+    }
         
 ]);
 
