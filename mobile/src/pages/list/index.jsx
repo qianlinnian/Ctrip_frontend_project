@@ -67,6 +67,9 @@ export default function HotelList() {
   const [loadingMore, setLoadingMore] = useState(false)
   const PAGE_SIZE = 10
 
+  // ScrollView 动态高度
+  const [scrollHeight, setScrollHeight] = useState(0)
+
   // 编辑面板状态
   const [showEditPanel, setShowEditPanel] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
@@ -127,6 +130,21 @@ export default function HotelList() {
     }
   }, [])
 
+  // 动态计算 ScrollView 高度（确保 onScrollToLower 正确触发）
+  useEffect(() => {
+    const sysInfo = Taro.getSystemInfoSync()
+    const windowHeight = sysInfo.windowHeight
+    const query = Taro.createSelectorQuery()
+    query.select('.list-header').boundingClientRect()
+    query.select('.filter-bar').boundingClientRect()
+    query.exec((res) => {
+      const headerH = (res[0] && res[0].height) || 0
+      const filterH = (res[1] && res[1].height) || 0
+      const h = windowHeight - headerH - filterH
+      if (h > 0) setScrollHeight(h)
+    })
+  }, [])
+
   // 获取酒店列表（支持分页）
   const fetchHotels = async (p, pageNum = 1, isRefresh = false) => {
     if (isRefresh) {
@@ -150,8 +168,10 @@ export default function HotelList() {
       }
 
       // 判断是否还有更多数据
-      const loadedCount = isRefresh ? newHotels.length : hotels.length + newHotels.length
-      setHasMore(loadedCount < total && newHotels.length === PAGE_SIZE)
+      const currentCount = isRefresh ? newHotels.length : pageNum * PAGE_SIZE
+      const more = currentCount < total && newHotels.length === PAGE_SIZE
+      console.log('[fetchHotels] pageNum:', pageNum, 'newHotels:', newHotels.length, 'total:', total, 'currentCount:', currentCount, 'hasMore:', more)
+      setHasMore(more)
       setPage(pageNum)
     } catch (e) {
       if (isRefresh) setHotels([])
@@ -164,7 +184,9 @@ export default function HotelList() {
 
   // 上滑加载更多
   const loadMore = () => {
+    console.log('[loadMore] 触发, loadingMore:', loadingMore, 'hasMore:', hasMore, 'loading:', loading, 'page:', page)
     if (loadingMore || !hasMore || loading) return
+    console.log('[loadMore] 开始加载第', page + 1, '页')
     fetchHotels(params, page + 1, false)
   }
 
@@ -463,11 +485,12 @@ export default function HotelList() {
       />
 
       {/* 酒店列表 */}
-      <ScrollView 
-        className="hotel-scroll" 
+      <ScrollView
+        className="hotel-scroll"
         scrollY
         onScrollToLower={loadMore}
         lowerThreshold={100}
+        style={scrollHeight ? { height: scrollHeight + 'px' } : {}}
       >
         {loading && (
           <View className="loading-state">
