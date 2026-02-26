@@ -137,17 +137,28 @@ export default function HotelList() {
 
   // 动态计算 ScrollView 高度（确保 onScrollToLower 正确触发）
   useEffect(() => {
-    const sysInfo = Taro.getSystemInfoSync()
-    const windowHeight = sysInfo.windowHeight
-    const query = Taro.createSelectorQuery()
-    query.select('.list-header').boundingClientRect()
-    query.select('.filter-bar').boundingClientRect()
-    query.exec((res) => {
-      const headerH = (res[0] && res[0].height) || 0
-      const filterH = (res[1] && res[1].height) || 0
-      const h = windowHeight - headerH - filterH
-      if (h > 0) setScrollHeight(h)
-    })
+    const calcHeight = () => {
+      const sysInfo = Taro.getSystemInfoSync()
+      const windowHeight = sysInfo.windowHeight
+      const query = Taro.createSelectorQuery()
+      query.select('.list-header').boundingClientRect()
+      query.select('.filter-bar').boundingClientRect()
+      query.exec((res) => {
+        const headerH = (res[0] && res[0].height) || 0
+        const filterH = (res[1] && res[1].height) || 0
+        const h = windowHeight - headerH - filterH
+        console.log('[ScrollHeight] window:', windowHeight, 'header:', headerH, 'filter:', filterH, 'scroll:', h)
+        if (h > 0) {
+          setScrollHeight(h)
+        } else {
+          // 兜底：如果查询失败，使用 windowHeight 减去估算的头部高度
+          setScrollHeight(windowHeight - 180)
+        }
+      })
+    }
+    // 延迟执行，确保 DOM 渲染完成；失败则重试一次
+    setTimeout(calcHeight, 300)
+    setTimeout(calcHeight, 800)
   }, [])
 
   // 获取酒店列表（支持分页）
@@ -162,6 +173,7 @@ export default function HotelList() {
 
     try {
       const res = await searchHotels({ ...p, page: pageNum, pageSize: PAGE_SIZE })
+      console.log('[fetchHotels] API响应:', JSON.stringify(res).slice(0, 200), 'keys:', Object.keys(res || {}))
       // API 返回 { hotels: [], total, page, pageSize }
       const newHotels = Array.isArray(res) ? res : (res.hotels || res.data || [])
       const total = res.total || newHotels.length
@@ -172,10 +184,10 @@ export default function HotelList() {
         setHotels(prev => [...prev, ...newHotels])
       }
 
-      // 判断是否还有更多数据
-      const currentCount = isRefresh ? newHotels.length : pageNum * PAGE_SIZE
-      const more = currentCount < total && newHotels.length === PAGE_SIZE
-      console.log('[fetchHotels] pageNum:', pageNum, 'newHotels:', newHotels.length, 'total:', total, 'currentCount:', currentCount, 'hasMore:', more)
+      // 判断是否还有更多数据：本页返回满 PAGE_SIZE 条且累计未超 total
+      const loadedCount = isRefresh ? newHotels.length : (hotels.length + newHotels.length)
+      const more = newHotels.length >= PAGE_SIZE && loadedCount < total
+      console.log('[fetchHotels] pageNum:', pageNum, 'newHotels:', newHotels.length, 'total:', total, 'loadedCount:', loadedCount, 'hasMore:', more)
       setHasMore(more)
       setPage(pageNum)
     } catch (e) {
@@ -189,8 +201,8 @@ export default function HotelList() {
 
   // 上滑加载更多
   const loadMore = () => {
-    console.log('[loadMore] 触发, loadingMore:', loadingMore, 'hasMore:', hasMore, 'loading:', loading, 'page:', page)
-    if (loadingMore || !hasMore || loading) return
+    console.log('[loadMore] 触发, loadingMore:', loadingMore, 'hasMore:', hasMore, 'page:', page)
+    if (loadingMore || !hasMore) return
     console.log('[loadMore] 开始加载第', page + 1, '页')
     fetchHotels(params, page + 1, false)
   }
@@ -493,9 +505,10 @@ export default function HotelList() {
       <ScrollView
         className="hotel-scroll"
         scrollY
+        enhanced
         onScrollToLower={loadMore}
-        lowerThreshold={100}
-        style={scrollHeight ? { height: scrollHeight + 'px' } : {}}
+        lowerThreshold={150}
+        style={{ height: scrollHeight ? `${scrollHeight}px` : 'calc(100vh - 180px)' }}
       >
         {loading && (
           <View className="loading-state">
