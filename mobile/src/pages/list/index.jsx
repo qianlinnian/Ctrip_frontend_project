@@ -67,6 +67,9 @@ export default function HotelList() {
   const [loadingMore, setLoadingMore] = useState(false)
   const PAGE_SIZE = 10
 
+  // ScrollView 动态高度
+  const [scrollHeight, setScrollHeight] = useState(0)
+
   // 编辑面板状态
   const [showEditPanel, setShowEditPanel] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
@@ -96,11 +99,16 @@ export default function HotelList() {
       guests: Number(p.guests) || saved.guests || 2,
       rooms: Number(p.rooms) || saved.rooms || 1,
       starLevel: Number(p.starLevel) || saved.starLevel || 0,
-      priceMin: p.priceMin !== undefined ? Number(p.priceMin) : (saved.priceMin ?? -1),
-      priceMax: p.priceMax !== undefined ? Number(p.priceMax) : (saved.priceMax ?? -1),
+      priceMin: p.priceMin !== undefined ? Number(p.priceMin) : (saved.priceMin != null ? saved.priceMin : -1),
+      priceMax: p.priceMax !== undefined ? Number(p.priceMax) : (saved.priceMax != null ? saved.priceMax : -1),
+      keyword: p.keyword ? decodeURIComponent(p.keyword) : '',
       tags: p.tags ? decodeURIComponent(p.tags) : '', // 多标签筛选（逗号分隔）
     }
-    
+
+    // 如果有关键词参数，同步到搜索框
+    if (initParams.keyword) {
+      setSearchKeyword(initParams.keyword)
+    }
     // 如果有标签参数，设置已选标签
     if (initParams.tags) {
       setSelectedTags(initParams.tags.split(',').filter(Boolean))
@@ -127,6 +135,32 @@ export default function HotelList() {
     }
   }, [])
 
+  // 动态计算 ScrollView 高度（确保 onScrollToLower 正确触发）
+  useEffect(() => {
+    const calcHeight = () => {
+      const sysInfo = Taro.getSystemInfoSync()
+      const windowHeight = sysInfo.windowHeight
+      const query = Taro.createSelectorQuery()
+      query.select('.list-header').boundingClientRect()
+      query.select('.filter-bar').boundingClientRect()
+      query.exec((res) => {
+        const headerH = (res[0] && res[0].height) || 0
+        const filterH = (res[1] && res[1].height) || 0
+        const h = windowHeight - headerH - filterH
+        console.log('[ScrollHeight] window:', windowHeight, 'header:', headerH, 'filter:', filterH, 'scroll:', h)
+        if (h > 0) {
+          setScrollHeight(h)
+        } else {
+          // 兜底：如果查询失败，使用 windowHeight 减去估算的头部高度
+          setScrollHeight(windowHeight - 180)
+        }
+      })
+    }
+    // 延迟执行，确保 DOM 渲染完成；失败则重试一次
+    setTimeout(calcHeight, 300)
+    setTimeout(calcHeight, 800)
+  }, [])
+
   // 获取酒店列表（支持分页）
   const fetchHotels = async (p, pageNum = 1, isRefresh = false) => {
     if (isRefresh) {
@@ -139,6 +173,7 @@ export default function HotelList() {
 
     try {
       const res = await searchHotels({ ...p, page: pageNum, pageSize: PAGE_SIZE })
+      console.log('[fetchHotels] API响应:', JSON.stringify(res).slice(0, 200), 'keys:', Object.keys(res || {}))
       // API 返回 { hotels: [], total, page, pageSize }
       const newHotels = Array.isArray(res) ? res : (res.hotels || res.data || [])
       const total = res.total || newHotels.length
@@ -149,9 +184,11 @@ export default function HotelList() {
         setHotels(prev => [...prev, ...newHotels])
       }
 
-      // 判断是否还有更多数据
-      const loadedCount = isRefresh ? newHotels.length : hotels.length + newHotels.length
-      setHasMore(loadedCount < total && newHotels.length === PAGE_SIZE)
+      // 判断是否还有更多数据：本页返回满 PAGE_SIZE 条且累计未超 total
+      const loadedCount = isRefresh ? newHotels.length : (hotels.length + newHotels.length)
+      const more = newHotels.length >= PAGE_SIZE && loadedCount < total
+      console.log('[fetchHotels] pageNum:', pageNum, 'newHotels:', newHotels.length, 'total:', total, 'loadedCount:', loadedCount, 'hasMore:', more)
+      setHasMore(more)
       setPage(pageNum)
     } catch (e) {
       if (isRefresh) setHotels([])
@@ -164,7 +201,9 @@ export default function HotelList() {
 
   // 上滑加载更多
   const loadMore = () => {
-    if (loadingMore || !hasMore || loading) return
+    console.log('[loadMore] 触发, loadingMore:', loadingMore, 'hasMore:', hasMore, 'page:', page)
+    if (loadingMore || !hasMore) return
+    console.log('[loadMore] 开始加载第', page + 1, '页')
     fetchHotels(params, page + 1, false)
   }
 
@@ -264,7 +303,7 @@ export default function HotelList() {
           <AtIcon value='search' size='16' color='#999' onClick={handleSearch} />
           <Input
             className="header-search-input"
-            placeholder="搜索酒店名称"
+            placeholder="搜索"
             value={searchKeyword}
             onInput={e => setSearchKeyword(e.detail.value)}
             onConfirm={handleSearch}
@@ -283,7 +322,7 @@ export default function HotelList() {
             : (tab.isTagFilter ? isTagActive : sortKey === tab.key)
           const isOpen = openTab === tab.key
           return (
-            <View key={tab.key ?? 'default'} className="filter-tab-wrap">
+            <View key={tab.key || 'default'} className="filter-tab-wrap">
               {idx > 0 && <View className="filter-divider" />}
               <View
                 className={`filter-item ${isActive ? 'active' : ''}`}
@@ -463,11 +502,13 @@ export default function HotelList() {
       />
 
       {/* 酒店列表 */}
-      <ScrollView 
-        className="hotel-scroll" 
+      <ScrollView
+        className="hotel-scroll"
         scrollY
+        enhanced
         onScrollToLower={loadMore}
-        lowerThreshold={100}
+        lowerThreshold={150}
+        style={{ height: scrollHeight ? `${scrollHeight}px` : 'calc(100vh - 180px)' }}
       >
         {loading && (
           <View className="loading-state">
@@ -477,10 +518,11 @@ export default function HotelList() {
         {!loading && sorted.map(hotel => (
           <View key={hotel.id} className="hotel-card" onClick={() => goDetail(hotel)}>
             {/* 酒店封面图片 */}
-            <Image 
-              className="hotel-image" 
-              src={hotel.cover_image || hotel.coverImage || `https://loremflickr.com/400/300/hotel?lock=${hotel.id}`} 
+            <Image
+              className="hotel-image"
+              src={hotel.cover_image || hotel.coverImage || `https://loremflickr.com/400/300/hotel?lock=${hotel.id}`}
               mode="aspectFill"
+              lazyLoad
             />
 
             {/* 酒店信息 */}
@@ -543,7 +585,7 @@ export default function HotelList() {
             {loadingMore ? (
               <Text className="list-footer-text">加载中...</Text>
             ) : hasMore ? (
-              <Text className="list-footer-text">上滑加载更多</Text>
+              <Text className="list-footer-text" onClick={loadMore}>点击或上滑加载更多</Text>
             ) : (
               <Text className="list-footer-text">— 已显示全部结果 —</Text>
             )}

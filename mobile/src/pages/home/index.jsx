@@ -5,6 +5,7 @@ import { AtIcon } from 'taro-ui'
 import { convertLocationToCity } from '../../utils/location'
 import CalendarPicker from '../../components/CalendarPicker'
 import PriceRangeSlider from '../../components/PriceRangeSlider'
+import { API_BASE_URL } from '../../config/api'
 import './index.scss'
 
 // 热门城市数据
@@ -227,7 +228,7 @@ export default function Home() {
     const fetchBannerHotels = async () => {
       try {
         const res = await Taro.request({
-          url: 'http://localhost:5000/api/hotels/recommend',
+          url: `${API_BASE_URL}/hotels/recommend`,
           method: 'GET',
           data: { limit: 5 }
         })
@@ -235,8 +236,8 @@ export default function Home() {
           const hotels = res.data.data.slice(0, 5) // 最多取5个
           const banners = hotels.map(hotel => ({
             id: hotel.id,
-            image: hotel.cover_image || `https://loremflickr.com/750/300/hotel?lock=${hotel.id}`,
-            title: hotel.hotel_name
+            image: hotel.image || `https://loremflickr.com/750/300/hotel?lock=${hotel.id}`,
+            title: hotel.name || hotel.hotel_name
           }))
           setBannerList(banners)
         }
@@ -332,7 +333,7 @@ export default function Home() {
     const fetchHotTags = async () => {
       try {
         const res = await Taro.request({
-          url: 'http://localhost:5000/api/tags/hot',
+          url: `${API_BASE_URL}/tags/hot`,
           method: 'GET',
           data: { limit: 8 }
         })
@@ -444,7 +445,12 @@ export default function Home() {
   const handleSearch = () => {
     const p = searchParams
     let url = `/pages/list/index?destination=${encodeURIComponent(p.destination)}&checkInDate=${p.checkInDate}&checkOutDate=${p.checkOutDate}&nights=${p.nights}&guests=${p.guests}&rooms=${p.rooms}&starLevel=${p.starLevel}&priceMin=${p.priceMin}&priceMax=${p.priceMax}`
-    
+
+    // 如果有关键词，添加到 URL
+    if (p.keyword && p.keyword.trim()) {
+      url += `&keyword=${encodeURIComponent(p.keyword.trim())}`
+    }
+
     // 如果有选中的标签，添加到 URL
     if (selectedTags.length > 0) {
       url += `&tags=${encodeURIComponent(selectedTags.join(','))}`
@@ -524,7 +530,7 @@ export default function Home() {
           <AtIcon value='search' size='18' color='#999' className='search-icon-at' />
           <Input
             className="search-input"
-            placeholder="位置/品牌/酒店"
+            placeholder="搜索"
             value={searchParams.keyword}
             onInput={(e) => setSearchParams({ ...searchParams, keyword: e.detail.value })}
           />

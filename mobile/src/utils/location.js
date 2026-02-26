@@ -3,15 +3,9 @@
  */
 import Taro from '@tarojs/taro'
 
-// 根据环境选择对应的 Key
+// 逆地理编码使用 Web服务 Key（REST API 只接受 Web服务类型的 Key）
 const getAmapKey = () => {
-  if (process.env.TARO_ENV === 'weapp') {
-    // 微信小程序环境
-    return process.env.TARO_APP_AMAP_WEAPP_KEY
-  } else {
-    // H5 浏览器环境
-    return process.env.TARO_APP_AMAP_WEB_KEY
-  }
+  return process.env.TARO_APP_AMAP_WEB_KEY || ''
 }
 
 /**
