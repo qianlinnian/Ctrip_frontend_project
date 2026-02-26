@@ -544,7 +544,7 @@ export default function HotelList() {
             {loadingMore ? (
               <Text className="list-footer-text">加载中...</Text>
             ) : hasMore ? (
-              <Text className="list-footer-text">上滑加载更多</Text>
+              <Text className="list-footer-text" onClick={loadMore}>点击或上滑加载更多</Text>
             ) : (
               <Text className="list-footer-text">— 已显示全部结果 —</Text>
             )}
