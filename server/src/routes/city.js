@@ -19,3 +19,4 @@ router.get('/with-hotels', cityController.getCitiesWithHotels)
 
 module.exports = router
 
+

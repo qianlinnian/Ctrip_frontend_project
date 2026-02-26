@@ -190,12 +190,24 @@
         justify-content: space-between;
         margin-bottom: 12px;
 
+        .hotel-star-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          .star-level {
+            font-size: 22px;
+            color: #FFB300;
+            font-weight: 500;
+          }
+        }
+
         .star-row {
           display: flex;
           gap: 2px;
 
           .star-icon {
-            font-size: 22px;
+            font-size: 20px;
             color: #ddd;
 
             &.filled { color: #FFB300; }
@@ -225,11 +237,28 @@
         }
       }
 
-      .hotel-address {
-        font-size: 22px;
-        color: #999;
+      .hotel-location-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         margin-bottom: 16px;
-        display: block;
+        gap: 12px;
+
+        .hotel-address {
+          font-size: 22px;
+          color: #666;
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .hotel-distance {
+          font-size: 20px;
+          color: #0086F6;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
       }
 
       .hotel-tags {

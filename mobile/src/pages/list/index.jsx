@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Button, Input } from '@tarojs/components'
+import { View, Text, ScrollView, Button, Input, Image } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { AtIcon } from 'taro-ui'
@@ -24,8 +24,8 @@ const FILTER_TABS = [
   },
   {
     key: 'distance', label: '距离', sub: [
-      { key: 'distance_asc',  label: '距市中心由近到远' },
-      { key: 'distance_desc', label: '距市中心由远到近' },
+      { key: 'distance_asc',  label: '由近到远' },
+      { key: 'distance_desc', label: '由远到近' },
     ]
   },
 ]
@@ -39,6 +39,16 @@ function StarRow({ count }) {
       ))}
     </View>
   )
+}
+
+// 根据评分返回评价标签
+function getScoreLabel(score) {
+  const s = Number(score) || 4.5
+  if (s >= 4.8) return '超赞'
+  if (s >= 4.5) return '很棒'
+  if (s >= 4.0) return '不错'
+  if (s >= 3.5) return '还行'
+  return '一般'
 }
 
 export default function HotelList() {
@@ -382,8 +392,12 @@ export default function HotelList() {
         )}
         {!loading && sorted.map(hotel => (
           <View key={hotel.id} className="hotel-card" onClick={() => goDetail(hotel)}>
-            {/* 酒店图片色块 */}
-            <View className="hotel-image" style={{ backgroundColor: hotel.color }} />
+            {/* 酒店封面图片 */}
+            <Image 
+              className="hotel-image" 
+              src={hotel.cover_image || hotel.coverImage || `https://loremflickr.com/400/300/hotel?lock=${hotel.id}`} 
+              mode="aspectFill"
+            />
 
             {/* 酒店信息 */}
             <View className="hotel-info">
@@ -392,29 +406,37 @@ export default function HotelList() {
               </View>
 
               <View className="hotel-meta-row">
-                <StarRow count={hotel.star} />
+                <View className="hotel-star-info">
+                  <Text className="star-level">{hotel.star || 3}星级</Text>
+                  <StarRow count={hotel.star || 3} />
+                </View>
                 <View className="hotel-score">
-                  <Text className="score-value">{hotel.score}</Text>
-                  <Text className="score-label">{hotel.scoreLabel}</Text>
-                  <Text className="score-count">{hotel.reviewCount}条</Text>
+                  <Text className="score-value">{Number(hotel.score || 4.5).toFixed(1)}</Text>
+                  <Text className="score-label">{getScoreLabel(hotel.score)}</Text>
                 </View>
               </View>
 
-              <Text className="hotel-address" numberOfLines={1}>{hotel.distance}</Text>
+              {/* 位置和距离 */}
+              <View className="hotel-location-row">
+                <Text className="hotel-address" numberOfLines={1}>
+                  {hotel.address || hotel.hotel_address || ''}
+                </Text>
+                {hotel.distance && hotel.distance !== '—' && (
+                  <Text className="hotel-distance">距市中心 {hotel.distance}</Text>
+                )}
+              </View>
 
+              {/* 标签 */}
               <View className="hotel-tags">
-                {hotel.tags.slice(0, 2).map((tag, i) => (
+                {(hotel.tags || hotel.facilities || []).slice(0, 3).map((tag, i) => (
                   <Text key={i} className="hotel-tag">{tag}</Text>
                 ))}
               </View>
 
               <View className="hotel-price-row">
                 <View className="price-block">
-                  {hotel.originalPrice && (
-                    <Text className="original-price">¥{hotel.originalPrice}</Text>
-                  )}
                   <Text className="current-price">¥{hotel.price}</Text>
-                  <Text className="price-unit">/晚</Text>
+                  <Text className="price-unit">起/晚</Text>
                 </View>
                 <View className="book-btn">
                   <Text className="book-btn-text">立即预订</Text>

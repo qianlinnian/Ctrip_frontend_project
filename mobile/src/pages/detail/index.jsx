@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Swiper, SwiperItem, Button } from '@tarojs/components'
+import { View, Text, ScrollView, Swiper, SwiperItem, Button, Image } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { AtIcon } from 'taro-ui'
@@ -18,15 +18,33 @@ function StarRow({ count }) {
 
 const TABS = ['概况', '设施', '政策']
 
-// 根据主色生成多张色调略有变化的"图片"色块
-function getBannerSlides(color) {
-  // 在主色基础上叠加不同透明度的黑/白，模拟不同光线的照片
+// 获取 banner 图片列表，确保至少有默认图片且每张不同
+function getBannerImages(images, hotelId = 1) {
+  if (images && images.length > 0) {
+    // 检查图片是否都相同（可能是相同 lock 值）
+    const uniqueImages = [...new Set(images)]
+    if (uniqueImages.length >= 2) {
+      return uniqueImages.slice(0, 5)
+    }
+  }
+  // 使用 hotelId 生成不同的默认图片
+  const base = hotelId * 10
   return [
-    color,
-    color + 'dd',
-    color + 'bb',
-    color + '99',
+    `https://loremflickr.com/800/400/hotel,room?lock=${base + 1}`,
+    `https://loremflickr.com/800/400/hotel,lobby?lock=${base + 2}`,
+    `https://loremflickr.com/800/400/hotel,bedroom?lock=${base + 3}`,
+    `https://loremflickr.com/800/400/hotel,pool?lock=${base + 4}`
   ]
+}
+
+// 获取房间图片，确保有默认值
+function getRoomImage(room, index = 0) {
+  if (room.image) return room.image
+  if (room.images && room.images.length > 0) {
+    return typeof room.images === 'string' ? room.images.split(',')[0] : room.images[0]
+  }
+  // 默认房间图片
+  return `https://loremflickr.com/400/300/hotel,room?lock=${100 + index}`
 }
 
 // 日期格式化辅助函数
@@ -53,6 +71,7 @@ export default function HotelDetail() {
   const [hotel, setHotel] = useState(null)
   const [activeTab, setActiveTab] = useState(0)
   const [bannerIndex, setBannerIndex] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)  // 下拉刷新状态
   
   // 从 URL 获取入住信息
   const [bookingInfo, setBookingInfo] = useState({
@@ -66,6 +85,50 @@ export default function HotelDetail() {
   // 弹窗控制
   const [showCalendar, setShowCalendar] = useState(false)
   const [showGuestPicker, setShowGuestPicker] = useState(false)
+
+  // 获取酒店数据的函数（可重用于刷新）
+  const fetchHotelData = async (hotelId) => {
+    try {
+      const raw = await getHotelDetail(hotelId)
+      // 字段适配：将 API 返回字段映射到页面使用的字段名
+      const d = {
+        ...raw,
+        star:        raw.starLevel  ?? raw.star ?? 0,
+        score:       raw.rating     ?? raw.score ?? 0,
+        scoreLabel:  raw.ratingDesc ?? raw.scoreLabel ?? '',
+        reviewCount: raw.reviewCount ?? 0,
+        address:     raw.address    ?? raw.location ?? '',
+        distance:    raw.distance   ?? '',
+        tags:        raw.tags       ?? [],
+        facilities:  raw.facilities ?? [],
+        rooms:       raw.rooms      ?? [],
+        phone:       raw.phone      ?? '',
+        price:       raw.price      ?? raw.minPrice ?? 0,
+        originalPrice: raw.originalPrice ?? null,
+        color:       raw.color      ?? '#1a73e8',
+      }
+      setHotel(d)
+      return true
+    } catch (e) {
+      console.error('获取酒店数据失败', e)
+      return false
+    }
+  }
+
+  // 下拉刷新处理
+  const onRefresh = async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    const p = Taro.getCurrentInstance()?.router?.params || {}
+    const id = Number(p.id)
+    const success = await fetchHotelData(id)
+    setRefreshing(false)
+    if (success) {
+      Taro.showToast({ title: '已刷新', icon: 'success', duration: 1500 })
+    } else {
+      Taro.showToast({ title: '刷新失败', icon: 'none' })
+    }
+  }
 
   useEffect(() => {
     const p = Taro.getCurrentInstance()?.router?.params || {}
@@ -102,26 +165,7 @@ export default function HotelDetail() {
       rooms: rooms || 1
     })
     
-    getHotelDetail(id).then(raw => {
-      // 字段适配：将 API 返回字段映射到页面使用的字段名
-      const d = {
-        ...raw,
-        star:        raw.starLevel  ?? raw.star ?? 0,
-        score:       raw.rating     ?? raw.score ?? 0,
-        scoreLabel:  raw.ratingDesc ?? raw.scoreLabel ?? '',
-        reviewCount: raw.reviewCount ?? 0,
-        address:     raw.address    ?? raw.location ?? '',
-        distance:    raw.distance   ?? '',
-        tags:        raw.tags       ?? [],
-        facilities:  raw.facilities ?? [],
-        rooms:       raw.rooms      ?? [],
-        phone:       raw.phone      ?? '',
-        price:       raw.price      ?? raw.minPrice ?? 0,
-        originalPrice: raw.originalPrice ?? null,
-        color:       raw.color      ?? '#1a73e8',
-      }
-      setHotel(d)
-    }).catch(() => {
+    fetchHotelData(id).catch(() => {
       Taro.showToast({ title: '加载失败', icon: 'none' })
     })
   }, [])
@@ -170,21 +214,38 @@ export default function HotelDetail() {
         <Swiper
           className="banner-swiper"
           circular
+          autoplay
+          interval={4000}
           onChange={e => setBannerIndex(e.detail.current)}
         >
-          {getBannerSlides(hotel.color).map((bg, i) => (
+          {getBannerImages(hotel.images, hotel.id).map((img, i) => (
             <SwiperItem key={i}>
-              <View className="banner-slide" style={{ backgroundColor: bg }} />
+              <Image 
+                className="banner-image" 
+                src={img} 
+                mode="aspectFill"
+              />
             </SwiperItem>
           ))}
         </Swiper>
 
-        {/* 返回 / 分享 / 收藏 浮在轮播图上 */}
+        {/* 顶部酒店名称 */}
+        <View className="banner-hotel-name">
+          <Text className="hotel-name-text">{hotel.hotel_name || hotel.name}</Text>
+          <View className="hotel-star-badge">
+            <Text className="star-text">{hotel.star || 4}星级</Text>
+          </View>
+        </View>
+
+        {/* 返回 / 刷新 / 分享 / 收藏 浮在轮播图上 */}
         <View className="banner-actions">
           <View className="banner-btn banner-btn-back" onClick={goBack}>
             <AtIcon value='chevron-left' size='26' color='#fff' />
           </View>
           <View className="banner-right-actions">
+            <View className="banner-btn" onClick={onRefresh}>
+              <AtIcon value='reload' size='24' color='#fff' />
+            </View>
             <View className="banner-btn">
               <AtIcon value='share' size='24' color='#fff' />
             </View>
@@ -197,12 +258,19 @@ export default function HotelDetail() {
         {/* 右下角：当前张数 */}
         <View className="banner-photo-count">
           <AtIcon value='image' size='14' color='#fff' />
-          <Text className="photo-count-text">{bannerIndex + 1} / {getBannerSlides(hotel.color).length}</Text>
+          <Text className="photo-count-text">{bannerIndex + 1} / {getBannerImages(hotel.images, hotel.id).length}</Text>
         </View>
       </View>
 
-      {/* 主要内容滚动区 */}
-      <ScrollView className="detail-scroll" scrollY>
+      {/* 主要内容滚动区 - 支持下拉刷新 */}
+      <ScrollView 
+        className="detail-scroll" 
+        scrollY
+        refresherEnabled
+        refresherTriggered={refreshing}
+        onRefresherRefresh={onRefresh}
+        refresherBackground="#f5f5f5"
+      >
         {/* 酒店基础信息 */}
         <View className="hotel-base-info">
           <Text className="hotel-name">{hotel.name}</Text>
@@ -348,9 +416,13 @@ export default function HotelDetail() {
         {/* 客房选择（始终显示在 tab 内容下方） */}
         <View className="rooms-section">
           <Text className="section-title">选择房型</Text>
-          {hotel.rooms.map(room => (
+          {hotel.rooms.map((room, idx) => (
             <View key={room.id} className="room-card">
-              <View className="room-color-block" style={{ backgroundColor: hotel.color }} />
+              <Image 
+                className="room-image" 
+                src={getRoomImage(room, idx)} 
+                mode="aspectFill"
+              />
               <View className="room-info">
                 <Text className="room-name">{room.name}</Text>
                 <View className="room-meta-row">

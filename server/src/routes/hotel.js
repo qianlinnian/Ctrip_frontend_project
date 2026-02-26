@@ -19,3 +19,4 @@ router.get('/:id', hotelController.getDetail)
 
 module.exports = router
 
+

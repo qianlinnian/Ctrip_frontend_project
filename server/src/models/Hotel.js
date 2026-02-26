@@ -7,14 +7,32 @@ const { calculateHotelDistances, calculateDistanceToPOI } = require('../services
 /**
  * 解析 images 字段，兼容 JSON 数组字符串和逗号分隔的纯 URL 字符串
  * 例如: '["url1","url2"]' 或 'url1,url2' 或 'url1'
+ * 注意：URL 中可能包含逗号（如 loremflickr.com/800/600/hotel,interior）
  */
 function parseImages(raw) {
   if (!raw) return []
   const trimmed = raw.trim()
+  
+  // 尝试 JSON 解析
   if (trimmed.startsWith('[')) {
     try { return JSON.parse(trimmed) } catch (e) { /* fallback */ }
   }
-  return trimmed.split(',').map(s => s.trim()).filter(Boolean)
+  
+  // 处理逗号分隔的 URL，但 URL 中可能包含逗号
+  // 使用正则匹配完整的 URL（以 http 开头，到下一个 http 或字符串结尾）
+  const urls = []
+  const regex = /https?:\/\/[^\s]+?(?=,https?:\/\/|$)/g
+  let match
+  while ((match = regex.exec(trimmed)) !== null) {
+    urls.push(match[0])
+  }
+  
+  // 如果正则没匹配到，回退到简单分割
+  if (urls.length === 0) {
+    return trimmed.split(',').map(s => s.trim()).filter(Boolean)
+  }
+  
+  return urls
 }
 
 const Hotel = {
@@ -117,22 +135,28 @@ const Hotel = {
       values.push(...stars)
     }
 
-    // 排序
-    switch (sortBy) {
-      case 'price_asc':
-        sql += ` ORDER BY h.price_start ASC`
-        break
-      case 'price_desc':
-        sql += ` ORDER BY h.price_start DESC`
-        break
-      case 'score_desc':
-        sql += ` ORDER BY score DESC`
-        break
-      case 'score_asc':
-        sql += ` ORDER BY score ASC`
-        break
-      default:
-        sql += ` ORDER BY h.create_time DESC`
+    // 排序（距离排序在应用层处理，因为距离是通过 API 计算的）
+    const isDistanceSort = sortBy === 'distance_asc' || sortBy === 'distance_desc'
+    if (!isDistanceSort) {
+      switch (sortBy) {
+        case 'price_asc':
+          sql += ` ORDER BY h.price_start ASC`
+          break
+        case 'price_desc':
+          sql += ` ORDER BY h.price_start DESC`
+          break
+        case 'score_desc':
+          sql += ` ORDER BY score DESC`
+          break
+        case 'score_asc':
+          sql += ` ORDER BY score ASC`
+          break
+        default:
+          sql += ` ORDER BY h.create_time DESC`
+      }
+    } else {
+      // 距离排序时，先按默认排序获取数据，后续在应用层排序
+      sql += ` ORDER BY h.create_time DESC`
     }
 
     // 先获取总数
@@ -169,7 +193,16 @@ const Hotel = {
       // 普通搜索：计算到城市中心的距离
       hotels = await calculateHotelDistances(hotels, location)
     } else {
-      hotels = hotels.map(h => ({ ...h, distance: '—' }))
+      hotels = hotels.map(h => ({ ...h, distance: '—', distanceMeters: 0 }))
+    }
+
+    // 距离排序（应用层排序）
+    if (sortBy === 'distance_asc' || sortBy === 'distance_desc') {
+      hotels.sort((a, b) => {
+        const distA = a.distanceMeters || 0
+        const distB = b.distanceMeters || 0
+        return sortBy === 'distance_asc' ? distA - distB : distB - distA
+      })
     }
 
     return {

@@ -19,3 +19,4 @@ router.put('/:id/cancel', bookingController.cancel)
 
 module.exports = router
 
+
