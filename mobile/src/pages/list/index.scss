@@ -466,11 +466,13 @@
 
   .edit-panel {
     width: 100%;
+    box-sizing: border-box;
     background-color: #fff;
     border-radius: 24px 24px 0 0;
     padding: 0 0 40px;
     max-height: 88vh;
     overflow-y: auto;
+    overflow-x: hidden;
 
     .edit-panel-header {
       display: flex;
@@ -524,6 +526,7 @@
         .counter-btn {
           width: 60px;
           height: 60px;
+          box-sizing: border-box;
           border-radius: 50%;
           border: 1px solid #ddd;
           background-color: #fff;
@@ -533,8 +536,13 @@
           align-items: center;
           justify-content: center;
           padding: 0;
+          margin: 0;
           min-height: unset;
           line-height: 1;
+
+          &::after {
+            display: none; // 移除 Taro Button 默认的 after 边框
+          }
         }
 
         .counter-val {
@@ -585,6 +593,7 @@
 
     .edit-confirm-btn {
       margin: 32px 32px 0;
+      box-sizing: border-box;
       background-color: #0086F6;
       color: #fff;
       border-radius: 48px;
@@ -592,6 +601,10 @@
       font-weight: bold;
       height: 96px;
       line-height: 96px;
+
+      &::after {
+        display: none;
+      }
     }
   }
 }

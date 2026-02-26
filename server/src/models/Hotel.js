@@ -7,6 +7,8 @@ const { calculateHotelDistances, calculateDistanceToPOI, geocode } = require('..
 /**
  * 解析 images 字段，兼容 JSON 数组字符串和逗号分隔的纯 URL 字符串
  * 例如: '["url1","url2"]' 或 'url1,url2' 或 'url1'
+ * 注意: URL 本身可能包含逗号（如 loremflickr.com/800/600/hotel,interior），
+ *       所以用 ",http" 作为分隔符而非单纯的逗号
  */
 function parseImages(raw) {
   if (!raw) return []
@@ -14,7 +16,8 @@ function parseImages(raw) {
   if (trimmed.startsWith('[')) {
     try { return JSON.parse(trimmed) } catch (e) { /* fallback */ }
   }
-  return trimmed.split(',').map(s => s.trim()).filter(Boolean)
+  // 用 ",http" 作为分隔边界，避免拆断含逗号的 URL
+  return trimmed.split(/,(?=https?:\/\/)/).map(s => s.trim()).filter(Boolean)
 }
 
 const Hotel = {
