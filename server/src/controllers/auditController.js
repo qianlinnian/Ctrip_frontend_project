@@ -17,21 +17,24 @@ exports.fetchAuditQueue = async (req, res) => {
 //审核处理 
 exports.handleAudit = async (req, res) => {
     const {hotel_id, action, audit_reason} = req.body
+    console.log('handleAudit received: ', req.body)
     switch(action) {
         //审核通过
-        case 'approve:':
+        case 'approve':
             const approveResult = await approveAudit(hotel_id);
-
-            return res.status(200).json({message: 'Approved successfully'})
+            console.log('approveResult: ', approveResult)
+            return res.status(200).json({message: 'Approved successfully', approveResult})
             break
 
         //审核拒绝
-        case 'reject:':
+        case 'reject':
+            console.log('rejectAudit received: ', req.body)
             const rejectResult = await rejectAudit(hotel_id, audit_reason);
 
-            return res.status(200).json({message: 'Rejected successfully'})
+            return res.status(200).json({message: 'Rejected successfully', rejectResult})
             break
     }
+    console.log('handleAudit completed')
 }
 
 

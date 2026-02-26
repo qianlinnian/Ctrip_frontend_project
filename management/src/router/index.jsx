@@ -22,7 +22,7 @@ const router = createBrowserRouter([
         element: <Register />,
     },
     {
-        path: '/merchant-dashboard',
+        path: '/merchant/dashboard',
         element: (
             <PrivateRoute>
                 <Dashboard />
@@ -30,7 +30,7 @@ const router = createBrowserRouter([
         )
     },
     {
-        path: '/audit',
+        path: '/admin/dashboard',
         element: (
             <PrivateRoute>
                 <AuditPage />
@@ -39,7 +39,7 @@ const router = createBrowserRouter([
     },
     //酒店管理
     {
-        path: '/merchant-dashboard/hotel-manage',
+        path: '/merchant/dashboard/new',
         element: (
             <PrivateRoute>
                 <HotelManage />
@@ -47,10 +47,10 @@ const router = createBrowserRouter([
         )
     },
     {
-        path: '/merchant-dashboard/edit',
+        path: '/merchant/dashboard/edit/:hotel_id',
         element: (
             <PrivateRoute>
-                <EditHotelForm />
+                <EditHotelForm/>
             </PrivateRoute>
         )
     }

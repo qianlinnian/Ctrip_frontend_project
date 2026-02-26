@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken')
 
-const JWT_SECRET = '2026'
+const JWT_SECRET = 'yisu2026'
 
 
 //jwt token生成封装
 const generateToken = (payload) => {
-    return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' })
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
 }
 
 

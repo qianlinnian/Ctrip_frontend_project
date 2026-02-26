@@ -79,7 +79,7 @@ const Dashboard = () => {
             //（_表示当前行对应字段的值，这里字段action不存在，所以不使用，record表示当前行数据）
             render: (_, record) => (
                 <Space size="small">
-                    <Button type="primary" onClick={() => handleEditHotel(record.id)}>编辑酒店信息</Button>
+                    <Button type="primary" onClick={() => handleEditHotel(record.hotel_id)}>编辑酒店信息</Button>
                 </Space>
             ),
         },
@@ -89,10 +89,11 @@ const Dashboard = () => {
     const fetchHotelList = async () => {
         const url = 'http://localhost:5000/api/hotel/my-hotels';
             try {
+                const merchant_id = localStorage.getItem('id');
                 const response = await fetch(url, 
                     {method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({merchant_id: 1})
+                    body: JSON.stringify({merchant_id: merchant_id})
                 });
                 if(!response.ok) throw new Error('Network response was not ok');
 
@@ -109,6 +110,10 @@ const Dashboard = () => {
             }
         }
 
+        useEffect (() => {
+            fetchHotelList()
+        }, [])
+
 
     function getUserInfo() {
         console.log("获取用户信息")
@@ -122,12 +127,12 @@ const Dashboard = () => {
 
     function handleNewHotel() {
         console.log("跳转到新增酒店页面")
-        navigate('/merchant-dashboard/hotel-manage')
+        navigate('/merchant/dashboard/new')
     }
 
-    function handleEditHotel(id) {
+    function handleEditHotel(hotel_id) {
         console.log("跳转到编辑酒店页面")
-        navigate(`/merchant-dashboard/edit`);
+        navigate(`/merchant/dashboard/edit/${hotel_id}`);
     }
 
 
