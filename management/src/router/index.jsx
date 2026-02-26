@@ -13,6 +13,13 @@ import PrivateRoute from "../components/PrivateRoute.jsx";
 
 
 const router = createBrowserRouter([
+    {   path: '/',
+        element:(
+            <PrivateRoute allowRoles={[]}>
+                <Login />
+            </PrivateRoute>
+        ),
+    },
     {
         path: '/login',
         element: <Login />,
