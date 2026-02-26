@@ -15,4 +15,14 @@ router.post('/my-hotels', hotelController.getMyHotels)
 //酒店信息
 router.get('/hotel-info/:hotel_id', hotelController.getHotelInfo)
 
+//房间类型
+router.get('/room-type', hotelController.getRoomType)
+
+//房间信息
+router.get('/room-info/:hotel_id', hotelController.getRoomInfo)
+
+router.get('/tags', hotelController.getTags)
+
+router.get('/tags/:hotel_id', hotelController.getHotelTags)
+
 module.exports = router

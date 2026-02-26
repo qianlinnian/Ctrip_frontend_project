@@ -2,11 +2,13 @@ import {react, useState, useEffect, useRef} from 'react'
 import CtripSider from '../../components/ctripsider'
 import CtripHeader from '../../components/ctripheader'
 
-import { Dropdown, Tabs, Steps, Card } from 'antd'
+import { Dropdown, Tabs, Steps, Card, Select } from 'antd'
 import { DownOutlined } from '@ant-design/icons'
 import { Form } from 'antd'
 import { Input, Upload } from 'antd'
 import { Button } from 'antd'
+import apiService from '../../services/api.js'
+
     
 
 
@@ -76,6 +78,19 @@ const roomManage = ({roomFormsRef, initialRooms, hotel_id}) => {
 
 const RoomFormContent = ({roomId, roomFormsRef, hotel_id}) => {
     const [form] = Form.useForm()
+    const [roomTypeOptions, setRoomTypeOptions] = useState([])
+
+
+    const fetchRoomTypeOptions = async () => {
+        const data = await apiService.get('/hotel/room-type')
+        console.log('fetch room type options from fetchRoomTypeOptions', data.options)
+        setRoomTypeOptions(data.options)
+    }
+
+    useEffect(() => {
+        fetchRoomTypeOptions()
+    }, [])
+
 
     useEffect(()=> {
         form.setFieldsValue({
@@ -94,22 +109,16 @@ const RoomFormContent = ({roomId, roomFormsRef, hotel_id}) => {
     return (
         <Form form={form}>
                     <div className="room-details">
-                    <Form.Item label="房间名称" name="room_name" rules={[{ required: true, message: '请输入房间名称' }]}>
-                        <Input />
-                    </Form.Item>
                     <Form.Item label="房间价格" name="price" rules={[{ required: true, message: '请输入房间价格' }]}>
                         <Input />
                     </Form.Item>
                     <Form.Item label="房间数量" name="room_count" rules={[{ required: true, message: '请输入房间数量' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item label="房间类型" name="room_type" rules={[{ required: true, message: '请输入房间类型' }]}>
-                        <Input />
+                    <Form.Item label="房间类型" name="room_type_id" rules={[{ required: true, message: '请选择房间类型' }]}>
+                        <Select options={roomTypeOptions} placeholder="请选择房间类型" />
                     </Form.Item>
-                    <Form.Item label="房间描述" name="room_description" rules={[{ required: true, message: '请输入房间描述' }]}>
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="房间图片" name="room_images" rules={[{ required: false, message: '请上传房间图片' }]}>
+                    <Form.Item label="房间图片" name="images" rules={[{ required: false, message: '请上传房间图片' }]}>
                         <Upload listType='picture-card'>
                             上传图片
                         </Upload>

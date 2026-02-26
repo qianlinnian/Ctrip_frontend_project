@@ -3,55 +3,54 @@ import { useParams } from 'react-router-dom';
 import CtripHeader from '../../components/ctripheader';
 import CtripSider from '../../components/ctripsider';
 import { Avatar, Layout, Form, Button, Input, Rate, Upload, Select } from 'antd'
+import apiService from '../../services/api';
 
 
 
 const { Header, Content, Sider } = Layout;
-
+const {TextArea} = Input;
 
 //onSubmit : 父组件传递的的回调函数
 const MerchantHotelForm = ({form}) => {
 
-
-    const [cityList, setCityList] = useState([
-        '北京', '上海', '广州', '深圳', '杭州', '武汉', '西安', '南京', '成都', '天津',
-        '重庆', '青岛', '大连', '厦门', '长沙', '济南', '郑州', '合肥', '福州', '台北'
-    ]);
-
-    const [tagOptions, setTagOptions] = useState([{ value: 'WiFi' }, { value: '停车场' }, { value: '免费停车' }, { value: '早餐' }, { value: '接机服务' }]);
+    const [tagOptions, setTagOptions] = useState([]);
     
-
-    const fetchTagOptions = async() => {
-        pass
-    }
-
-    const {id} = useParams();
-    console.log('id:', id)
-
-    useEffect(() => {
-        if (id) {
-            loadHotelData(id);// Fetch hotel data by id and set it to formData
-        }
-    }, [id]);
-
-    const loadHotelData = async (id) => {
-        try {
-            const response = await fetch(`https://m1.apifoxmock.com/m1/7818580-7566390-default/hotel/idtoinfo/${id}`);
-
-            if (!response.ok) throw new Error('Network response was not ok');
-            const data = await response.json();         
-            setFormData(data);
-            console.log('formData', formData)
-        } catch (error) {
-            console.error('Error fetching hotel data:', error);
-        }
+    const fetchTagOptions = async () => {
+        const response = await apiService.get('/hotel/tags');
+        const data = await response.options;
+        console.log('tags', data)
+        setTagOptions(data);
     };
 
-    // function handleSubmit() {
-    //     if(onSubmit) {
-    //         onSubmit(formData);
-    //     }
-    // }
+    useEffect(() => {
+        fetchTagOptions();
+    }, []);
+
+    const cityList = [
+        { value: '北京', label: '北京' },
+        { value: '上海', label: '上海' },
+        { value: '广州', label: '广州' },
+        { value: '深圳', label: '深圳' },
+        { value: '杭州', label: '杭州' },
+        { value: '武汉', label: '武汉' },
+        { value: '西安', label: '西安' },
+        { value: '南京', label: '南京' },
+        { value: '成都', label: '成都' },
+        { value: '天津', label: '天津' },
+        { value: '重庆', label: '重庆' },
+        { value: '青岛', label: '青岛' },
+        { value: '大连', label: '大连' },
+        { value: '厦门', label: '厦门' },
+        { value: '长沙', label: '长沙' },
+        { value: '济南', label: '济南' },
+        { value: '郑州', label: '郑州' },
+        { value: '合肥', label: '合肥' },
+        { value: '福州', label: '福州' },
+        { value: '台北', label: '台北' },
+        { value: '香港', label: '香港' },
+        { value: '澳门', label: '澳门' }
+    ]
+
 
     return (
         <>
@@ -66,7 +65,7 @@ const MerchantHotelForm = ({form}) => {
                     {/* <!-- 酒店名称 --> */}
                     <Form.Item
                         label="酒店名称"
-                        name="name"
+                        name="hotel_name"
                         rules={[{ required: true, message: '请输入酒店名称' }]}>
                         <Input placeholder="请输入酒店名称"/>
                     </Form.Item>
@@ -75,24 +74,24 @@ const MerchantHotelForm = ({form}) => {
                     <Form.Item label='所属城市' 
                     name='city'
                     rules={[{required: true, message: '请输入所属城市'}]}>
-                        <Input placeholder="请输入所属城市"  />
+                        <Select options={cityList} showSearch={{ optionFilterProp: 'label' }} placeholder="请选择所属城市"></Select>
                     </Form.Item>
 
                     {/* <!-- 详细地址 --> */}
                     <Form.Item
                         label="详细地址"
-                        name="address"
+                        name="hotel_address"
                         rules={[{ required: true, message: '请输入详细地址' }]}
                     >
                         <Input placeholder="请输入详细地址（街道、门牌号）" />
                     </Form.Item>
 
                     {/* <!-- 酒店星级 --> */}
-                    <Form.Item name="star">
+                    <Form.Item name="hotel_level">
                         <Rate />
-                        
                     </Form.Item>
                     {/* <!-- 联系电话 --> */}
+
                     <Form.Item
                         label="联系电话"
                         name="phone"
@@ -107,7 +106,7 @@ const MerchantHotelForm = ({form}) => {
                         name="description"
                         rules={[{ required: true, message: '请输入酒店简介' }]}
                     >
-                        <Input placeholder="请输入酒店简介"  />
+                        <TextArea placeholder="请输入酒店简介" rows={4} />
                     </Form.Item>
 
                     {/* <!-- 设施标签 --> */}
@@ -135,7 +134,7 @@ const MerchantHotelForm = ({form}) => {
                     </Form.Item>
 
                     {/* <!-- 营业执照上传 --> */}
-                    <Form.Item
+                    {/* <Form.Item
                         label="营业执照"
                         name="license"
                         rules={[{ required: false, message: '请上传营业执照' }]}
@@ -147,7 +146,7 @@ const MerchantHotelForm = ({form}) => {
                         >
                             <p>点击上传营业执照扫描件</p>
                         </Upload>
-                    </Form.Item>
+                    </Form.Item> */}
                 </Form>
 
             </div>

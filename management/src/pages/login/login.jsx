@@ -28,15 +28,18 @@ const Login = () => {
         //登入成功
       if (response.ok) {
         const data =  await response.json()
-        console.log('data', data)
         localStorage.setItem('token', data.data.token);
-        console.log('token', data.data.token)
         localStorage.setItem('username', data.data.user.username);
-        localStorage.setItem('name', data.data.user.name);
-        console.log('user', data.data.user)
+        localStorage.setItem('role', data.data.user.role);
+        localStorage.setItem('id', data.data.user.id);
+        console.log('Login Info Storage to Session', {token: data.data.token, username: data.data.user.username, role: data.data.user.role, id: data.data.user.id})
 
         //重定向到主页
-        navigate('/merchant-dashboard');
+        if(data.data.user.role === 'merchant') {
+          navigate('/merchant/dashboard');
+        } else if(data.data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        }
       }
     } catch (error) {
       console.error('Login failed:', error);

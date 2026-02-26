@@ -1,49 +1,90 @@
-import {react, useState} from 'react'
+import {react, useState, useEffect} from 'react'
 import {Descriptions, Table, Tabs} from 'antd'
 
 
+import apiService from '../../services/api'
 
-const hotelDetails = () => {
+const hotelDetails = ({hotel_id}) => {
+    const [datasource, setDatasource] = useState([])
+    const [roomData, setRoomData] = useState([])
+    const [tagOptions, setTagOptions] = useState([])
 
-    const datasource = {
-        name: '酒店名称',
-        address: '酒店地址',
-        star: '酒店等级',
-        description: '酒店简介',
-        images: '酒店图片',
-        liscense: '营业执照'
+    const fetchTagOptions = async () => {
+        try {
+            const response = await apiService.get(`/hotel/tags/${hotel_id}`)
+            const tags = response.options
+
+            setTagOptions(tags.map(tag => tag.label + '/ '))
+        } catch (error) {
+            console.error('Error fetching tag options:', error)
+        }
     }
+
+    const fetchHotelData = async () => {
+        try {
+            const response = await apiService.get(`/hotel/hotel-info/${hotel_id}`)
+            
+            setDatasource(response.hotel)
+            
+            const roomResponse = await apiService.get(`/hotel/room-info/${hotel_id}`)
+            setRoomData(roomResponse.room)
+        } catch (error) {
+            console.error('Error fetching hotel data:', error)
+        }
+    }
+
+    useEffect(() => {
+        fetchHotelData()
+        fetchTagOptions()
+    }, [hotel_id])
 
     const hotelDescriptionItems = [
         {
             key:'1',
             label:'酒店名称',
-            children: datasource.name
+            children: datasource.hotel_name
         },
         {
             key:'2',
-            label:'酒店地址',
-            children: datasource.address
+            label:'城市',
+            children: datasource.city
         },
+
         {
             key:'3',
-            label:'酒店等级',
-            children: datasource.star
+            label:'酒店详细地址',
+            children: datasource.hotel_address
         },
         {
             key:'4',
+            label:'酒店联系方式',
+            children: datasource.phone
+        },
+        {
+            key:'5',
+            label:'起始价格',
+            span: 'filled',
+            children: datasource.price_start
+        },
+        {
+            key:'6',
+            label:'酒店等级',
+            children: datasource.hotel_level
+        },
+        {
+            key:'7',
+            label:'酒店标签',
+            span: 'filled',
+            children: tagOptions
+        },
+        {
+            key:'8',
             label:'酒店简介',
             span: 'filled',
             children: datasource.description
         },
         {
-            key:'5',
-            label:'营业执照',
-            span: 'filled',
-            children: datasource.liscense
-        },
-        {
-            key:'6',
+            key:'9',
             label:'酒店图片',
             span: 'filled',
             children: datasource.images
@@ -52,8 +93,12 @@ const hotelDetails = () => {
 
     const roomTableItems = [
         {
-            title:'房间名称',
-            dataIndex: 'name'
+            title:'房间ID',
+            dataIndex: 'room_id'
+        },
+        {
+            title:'房间类型ID',
+            dataIndex: 'room_type_id'
         },
         {
             title:'房间价格',
@@ -61,12 +106,12 @@ const hotelDetails = () => {
         },
         {
             title:'房间数量',
-            dataIndex: 'roomCount'
+            dataIndex: 'room_count'
         },
-        {
-            title:'房间图片',
-            dataIndex: 'images'
-        },
+        // {
+        //     title:'房间图片',
+        //     dataIndex: 'images'
+        // },
     ]
 
     const tabsItems = [
@@ -78,7 +123,7 @@ const hotelDetails = () => {
         {
             key: '2',
             label:'房间信息',
-            children: <Table layout='vertical' bordered columns={roomTableItems} />
+            children: <Table layout='vertical' bordered columns={roomTableItems} dataSource={roomData} />
         }
     ]
 

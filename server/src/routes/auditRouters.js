@@ -8,7 +8,7 @@ const router = express.Router()
 router.get('/get-audit-queue', auditController.fetchAuditQueue)
 
 //审核处理
-router.post('handle-audit', auditController.handleAudit)
+router.post('/handle-audit', auditController.handleAudit)
 
 
 

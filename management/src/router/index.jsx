@@ -13,6 +13,13 @@ import PrivateRoute from "../components/PrivateRoute.jsx";
 
 
 const router = createBrowserRouter([
+    {   path: '/',
+        element:(
+            <PrivateRoute allowRoles={[]}>
+                <Login />
+            </PrivateRoute>
+        ),
+    },
     {
         path: '/login',
         element: <Login />,
@@ -22,35 +29,35 @@ const router = createBrowserRouter([
         element: <Register />,
     },
     {
-        path: '/merchant-dashboard',
+        path: '/merchant/dashboard',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['merchant']}>
                 <Dashboard />
             </PrivateRoute>
         )
     },
     {
-        path: '/audit',
+        path: '/admin/dashboard',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['admin']}>
                 <AuditPage />
             </PrivateRoute>
         )
     },
     //酒店管理
     {
-        path: '/merchant-dashboard/hotel-manage',
+        path: '/merchant/dashboard/new',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['merchant']}>
                 <HotelManage />
             </PrivateRoute>
         )
     },
     {
-        path: '/merchant-dashboard/edit',
+        path: '/merchant/dashboard/edit/:hotel_id',
         element: (
-            <PrivateRoute>
-                <EditHotelForm />
+            <PrivateRoute allowRoles={['merchant']}>
+                <EditHotelForm/>
             </PrivateRoute>
         )
     }

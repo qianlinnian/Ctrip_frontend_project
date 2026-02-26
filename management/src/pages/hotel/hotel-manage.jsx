@@ -62,31 +62,10 @@ const HotelManage = () => {
             }
         }
     }
-    //     try {
-    //         switch(currentStep){
-    //             //validate hotelForm
-    //             case 0:
-    //                 await hotelForm.validateFields()
-    //                 break
-
-    //             //validate roomForm
-    //             case 1:
-    //                 const roomForms = Object.values(roomFormsRef.current)
-                    
-    //                 if(roomForms.length > 0) {
-    //                     for(const form of roomForms) {
-    //                         await form.validateFields()
-    //                     }
-    //                 }
-    //         }
-    //         return true
-    //     } catch (error) {
-    //         console.log("字段验证失败：", error)
-    //         return false
-    //     }
-    // }
 
 
+
+    //没有提交的数据不能为undefined,数据库会报错，必须修改为Null
     function removeUndefined(data) {
         if(data) {
             return Object.keys(data).reduce((result, key) => {
@@ -107,24 +86,12 @@ const HotelManage = () => {
     async function handleSubmit() {
         if(await validateCurrentStep()) {
         const hotelData = hotelForm.getFieldsValue();
-        /*语法解释
-        Object.values():提取对象值,将对象转换为值数组
-        roomFormsRef.current以键值对存储，键是id，值是form实例
-        */
-        const roomsData = Object.values(roomFormsRef.current).map(form => form.getFieldsValue());
-        const cleanRoomsData = roomsData.map(
-        roomData => removeUndefined(roomData))
-        const cleanHotelData = removeUndefined(hotelData)
+        const merchantId = localStorage.getItem('id')
 
-        const data = {...cleanHotelData, rooms: cleanRoomsData, merchant_id: 1, status: "pending"}
-        
+        const data = removeUndefined({...hotelData, merchant_id: merchantId})
         console.log("待提交的数据：", data)
-
         const response =  await apiService.post('/hotel/new', data)
-
-
         console.log("提交结果：", response)
-
         }
     }
 
@@ -148,10 +115,6 @@ const HotelManage = () => {
                             </Form>
                         </div>
                         
-                        {/* <div style={{ display: currentStep === 1 ? 'block' : 'none' }}>
-                            <RoomManage roomFormsRef={roomFormsRef} />
-                        </div>
-                         */}
                         <div style={{ display: currentStep === 2 ? 'block' : 'none' }}>
                             <div style={{ textAlign: 'center', padding: '40px' }}>
                                 <h2>✅ 提交完成</h2>

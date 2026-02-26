@@ -16,13 +16,13 @@ const getAuditQueue = async () => {
 //审核通过(audit_status = 2)
 const approveAudit = async (hotel_id) => {
     const [rows] = await pool.execute('UPDATE hotel SET audit_status = 2 WHERE hotel_id = ?', [hotel_id])
-    return rows[0]
+    return rows
 }
 
 //审核拒绝(audit_status = 3)
 const rejectAudit = async (hotel_id, audit_reason) => {
     const [rows] = await pool.execute('UPDATE hotel SET audit_status = 3, reject_reason = ? WHERE hotel_id = ?', [audit_reason, hotel_id])
-    return rows[0]
+    return rows
 }
 
 module.exports = {getAuditQueue, approveAudit, rejectAudit}

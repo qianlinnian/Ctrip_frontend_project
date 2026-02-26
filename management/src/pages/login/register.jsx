@@ -8,7 +8,6 @@ import {Form, Input, Button, message, Select} from 'antd';
 const Register = () => {
 
     const [username, setUsername] = useState('');
-    const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -21,9 +20,10 @@ const Register = () => {
     const registerFormItem = [
         {label: '用户名', name: 'username', type: 'text', placeholder: '请输入用户名（4-16位字符）'},
         {label: '邮箱', name: 'email', type: 'text', placeholder: '请输入邮箱地址'},
+        {label: '手机号', name: 'phone', type: 'text', placeholder: '请输入手机号'},
         {label: '密码', name: 'password', type: 'password', placeholder: '请输入密码（6-20位）'},
-        {label: '确认密码', name: 'confirmPassword', type: 'password', placeholder: '请再次输入密码'},
-        {label: '手机号', name: 'phone', type: 'text', placeholder: '请输入手机号'}
+        {label: '确认密码', name: 'confirmPassword', type: 'password', placeholder: '请再次输入密码'}
+        
     ]
 
     const roleSelelctOptions = [
@@ -91,11 +91,6 @@ const Register = () => {
                         <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>
                             <div className="input-wrapper">
                                 <Input placeholder="请输入用户名（4-16位字符）" id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-                            </div>
-                        </Form.Item>
-                        <Form.Item label="姓名" name="name" rules={[{ required: true, message: '请输入姓名' }]}>
-                            <div className="input-wrapper">
-                                <Input placeholder="请输入姓名（4-16位字符）" id="name" value={name} onChange={(e) => setName(e.target.value)} />
                             </div>
                         </Form.Item>
                         <Form.Item label="邮箱" name="email" rules={[{ required: true, message: '请输入邮箱' }]}>
