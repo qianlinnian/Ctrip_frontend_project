@@ -525,7 +525,7 @@ export default function Home() {
           <AtIcon value='search' size='18' color='#999' className='search-icon-at' />
           <Input
             className="search-input"
-            placeholder="位置/品牌/酒店"
+            placeholder="搜索"
             value={searchParams.keyword}
             onInput={(e) => setSearchParams({ ...searchParams, keyword: e.detail.value })}
           />

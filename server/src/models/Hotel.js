@@ -184,6 +184,13 @@ const Hotel = {
       hotels = hotels.map(h => ({ ...h, distance: '—' }))
     }
 
+    // 距离排序（距离在代码层面计算，需要在获取后排序）
+    if (sortBy === 'distance_asc') {
+      hotels.sort((a, b) => (a.distanceMeters || 999999) - (b.distanceMeters || 999999))
+    } else if (sortBy === 'distance_desc') {
+      hotels.sort((a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0))
+    }
+
     return {
       hotels,
       total,
