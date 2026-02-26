@@ -445,7 +445,12 @@ export default function Home() {
   const handleSearch = () => {
     const p = searchParams
     let url = `/pages/list/index?destination=${encodeURIComponent(p.destination)}&checkInDate=${p.checkInDate}&checkOutDate=${p.checkOutDate}&nights=${p.nights}&guests=${p.guests}&rooms=${p.rooms}&starLevel=${p.starLevel}&priceMin=${p.priceMin}&priceMax=${p.priceMax}`
-    
+
+    // 如果有关键词，添加到 URL
+    if (p.keyword && p.keyword.trim()) {
+      url += `&keyword=${encodeURIComponent(p.keyword.trim())}`
+    }
+
     // 如果有选中的标签，添加到 URL
     if (selectedTags.length > 0) {
       url += `&tags=${encodeURIComponent(selectedTags.join(','))}`

@@ -99,11 +99,16 @@ export default function HotelList() {
       guests: Number(p.guests) || saved.guests || 2,
       rooms: Number(p.rooms) || saved.rooms || 1,
       starLevel: Number(p.starLevel) || saved.starLevel || 0,
-      priceMin: p.priceMin !== undefined ? Number(p.priceMin) : (saved.priceMin ?? -1),
-      priceMax: p.priceMax !== undefined ? Number(p.priceMax) : (saved.priceMax ?? -1),
+      priceMin: p.priceMin !== undefined ? Number(p.priceMin) : (saved.priceMin != null ? saved.priceMin : -1),
+      priceMax: p.priceMax !== undefined ? Number(p.priceMax) : (saved.priceMax != null ? saved.priceMax : -1),
+      keyword: p.keyword ? decodeURIComponent(p.keyword) : '',
       tags: p.tags ? decodeURIComponent(p.tags) : '', // 多标签筛选（逗号分隔）
     }
-    
+
+    // 如果有关键词参数，同步到搜索框
+    if (initParams.keyword) {
+      setSearchKeyword(initParams.keyword)
+    }
     // 如果有标签参数，设置已选标签
     if (initParams.tags) {
       setSelectedTags(initParams.tags.split(',').filter(Boolean))
@@ -286,7 +291,7 @@ export default function HotelList() {
           <AtIcon value='search' size='16' color='#999' onClick={handleSearch} />
           <Input
             className="header-search-input"
-            placeholder="搜索酒店名称"
+            placeholder="搜索"
             value={searchKeyword}
             onInput={e => setSearchKeyword(e.detail.value)}
             onConfirm={handleSearch}
@@ -305,7 +310,7 @@ export default function HotelList() {
             : (tab.isTagFilter ? isTagActive : sortKey === tab.key)
           const isOpen = openTab === tab.key
           return (
-            <View key={tab.key ?? 'default'} className="filter-tab-wrap">
+            <View key={tab.key || 'default'} className="filter-tab-wrap">
               {idx > 0 && <View className="filter-divider" />}
               <View
                 className={`filter-item ${isActive ? 'active' : ''}`}
