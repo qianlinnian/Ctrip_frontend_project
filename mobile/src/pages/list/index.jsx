@@ -477,10 +477,11 @@ export default function HotelList() {
         {!loading && sorted.map(hotel => (
           <View key={hotel.id} className="hotel-card" onClick={() => goDetail(hotel)}>
             {/* 酒店封面图片 */}
-            <Image 
-              className="hotel-image" 
-              src={hotel.cover_image || hotel.coverImage || `https://loremflickr.com/400/300/hotel?lock=${hotel.id}`} 
+            <Image
+              className="hotel-image"
+              src={hotel.cover_image || hotel.coverImage || `https://loremflickr.com/400/300/hotel?lock=${hotel.id}`}
               mode="aspectFill"
+              lazyLoad
             />
 
             {/* 酒店信息 */}
