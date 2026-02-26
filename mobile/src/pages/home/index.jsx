@@ -236,8 +236,8 @@ export default function Home() {
           const hotels = res.data.data.slice(0, 5) // 最多取5个
           const banners = hotels.map(hotel => ({
             id: hotel.id,
-            image: hotel.cover_image || `https://loremflickr.com/750/300/hotel?lock=${hotel.id}`,
-            title: hotel.hotel_name
+            image: hotel.image || `https://loremflickr.com/750/300/hotel?lock=${hotel.id}`,
+            title: hotel.name || hotel.hotel_name
           }))
           setBannerList(banners)
         }
