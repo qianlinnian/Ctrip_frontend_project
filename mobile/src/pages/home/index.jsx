@@ -5,6 +5,7 @@ import { AtIcon } from 'taro-ui'
 import { convertLocationToCity } from '../../utils/location'
 import CalendarPicker from '../../components/CalendarPicker'
 import PriceRangeSlider from '../../components/PriceRangeSlider'
+import { API_BASE_URL } from '../../config/api'
 import './index.scss'
 
 // 热门城市数据
@@ -227,7 +228,7 @@ export default function Home() {
     const fetchBannerHotels = async () => {
       try {
         const res = await Taro.request({
-          url: 'http://localhost:5000/api/hotels/recommend',
+          url: `${API_BASE_URL}/hotels/recommend`,
           method: 'GET',
           data: { limit: 5 }
         })
@@ -332,7 +333,7 @@ export default function Home() {
     const fetchHotTags = async () => {
       try {
         const res = await Taro.request({
-          url: 'http://localhost:5000/api/tags/hot',
+          url: `${API_BASE_URL}/tags/hot`,
           method: 'GET',
           data: { limit: 8 }
         })
