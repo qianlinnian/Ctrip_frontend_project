@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Layout, Menu, Breadcrumb, Input, Button, Space, Avatar, Select, Badge, Dropdown } from 'antd';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 import { BellOutlined } from '@ant-design/icons';
 
@@ -64,6 +65,14 @@ const CtripHeader = () => {
     <Header class="admin-header">
     <div class="header-left">
         <h2 class="page-title">我的酒店</h2>
+        <Button 
+            type="text"
+            icon={<ArrowLeftOutlined />} 
+            onClick={() => navigate(-1)}
+            className="back-btn"
+        >
+            返回
+        </Button>
     </div>
     <div class="header-right">
         {/* 通知图标 */}

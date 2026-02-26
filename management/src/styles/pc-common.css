@@ -683,3 +683,24 @@
     width: 200px;
   }
 }
+
+
+
+
+/* ———————————————————————————————————————————— 后退按钮 ———————————————————————————————————————————— */
+.back-btn {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: var(--radius-small);
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  color: var(--primary-color) !important;
+  background: rgba(255, 107, 53, 0.06) !important;
+}
+
+.back-btn .anticon {
+  font-size: 13px;
+}

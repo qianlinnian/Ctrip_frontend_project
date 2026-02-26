@@ -148,7 +148,7 @@ const Dashboard = () => {
 
                     {/* <!-- 顶部栏 --> */}
                     <CtripHeader />
-                    <Button type="primary" onClick={fetchHotelList}>获取酒店列表</Button>
+                    {/* <Button type="primary" onClick={fetchHotelList}>获取酒店列表</Button> */}
 
                     {/* <!-- 内容区 --> */}
                     <div class="admin-content">

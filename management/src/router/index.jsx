@@ -24,7 +24,7 @@ const router = createBrowserRouter([
     {
         path: '/merchant/dashboard',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['merchant']}>
                 <Dashboard />
             </PrivateRoute>
         )
@@ -32,7 +32,7 @@ const router = createBrowserRouter([
     {
         path: '/admin/dashboard',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['admin']}>
                 <AuditPage />
             </PrivateRoute>
         )
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
     {
         path: '/merchant/dashboard/new',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['merchant']}>
                 <HotelManage />
             </PrivateRoute>
         )
@@ -49,7 +49,7 @@ const router = createBrowserRouter([
     {
         path: '/merchant/dashboard/edit/:hotel_id',
         element: (
-            <PrivateRoute>
+            <PrivateRoute allowRoles={['merchant']}>
                 <EditHotelForm/>
             </PrivateRoute>
         )
