@@ -123,6 +123,9 @@ const Hotel = {
       }
     }
 
+    // 是否需要距离排序（距离排序需要先取出所有数据再排序）
+    const isDistanceSort = sortBy === 'distance_asc' || sortBy === 'distance_desc'
+
     // 排序
     switch (sortBy) {
       case 'price_asc':
@@ -152,10 +155,12 @@ const Hotel = {
     const [countResult] = await pool.query(countSql, values)
     const total = countResult[0]?.total || 0
 
-    // 分页
+    // 分页：距离排序时先取所有数据，排序后再手动分页
     const offset = (Number(page) - 1) * Number(pageSize)
-    sql += ` LIMIT ? OFFSET ?`
-    values.push(Number(pageSize), offset)
+    if (!isDistanceSort) {
+      sql += ` LIMIT ? OFFSET ?`
+      values.push(Number(pageSize), offset)
+    }
 
     const [rows] = await pool.query(sql, values)
 
@@ -184,11 +189,15 @@ const Hotel = {
       hotels = hotels.map(h => ({ ...h, distance: '—' }))
     }
 
-    // 距离排序（距离在代码层面计算，需要在获取后排序）
-    if (sortBy === 'distance_asc') {
-      hotels.sort((a, b) => (a.distanceMeters || 999999) - (b.distanceMeters || 999999))
-    } else if (sortBy === 'distance_desc') {
-      hotels.sort((a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0))
+    // 距离排序（距离在代码层面计算，排序后再手动分页）
+    if (isDistanceSort) {
+      if (sortBy === 'distance_asc') {
+        hotels.sort((a, b) => (a.distanceMeters || 999999) - (b.distanceMeters || 999999))
+      } else {
+        hotels.sort((a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0))
+      }
+      // 手动分页
+      hotels = hotels.slice(offset, offset + Number(pageSize))
     }
 
     return {
