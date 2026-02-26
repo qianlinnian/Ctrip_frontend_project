@@ -76,9 +76,9 @@ const AuditPage = () => {
             audit_reason: ''
         }
         console.log('审核通过:', data)
-        apiService.post('/audit/handle-audit', data)
+        await apiService.post('/audit/handle-audit', data)
         setIsShowModal(false)
-        fetchAuditList()
+        await fetchAuditList()
     }
 
     const handleReject = async () => {
@@ -87,10 +87,10 @@ const AuditPage = () => {
             action: 'reject',
             audit_reason: auditReason
         }
-        apiService.post('/audit/handle-audit', data)
+        await apiService.post('/audit/handle-audit', data)
         console.log('审核拒绝:', data)
         setIsShowModal(false)
-        fetchAuditList()
+        await fetchAuditList()
     }
     
     return (

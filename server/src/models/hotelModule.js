@@ -6,7 +6,7 @@ const findMyHotels = async(merchant_id) => {
     const [rows] = await pool.execute('SELECT * FROM hotel WHERE merchant_id = ?', [merchant_id])
     return rows
 }
-
+ 
 //酒店操作
 const findHotelByName = async(hotel_name) => {
     const [rows] = await pool.execute('SELECT * FROM hotel WHERE hotel_name = ?', [hotel_name])
@@ -17,7 +17,7 @@ const findHotelById = async(hotelid) => {
     const [rows] = await pool.execute('SELECT * FROM hotel WHERE hotel_id = ?', [hotelid])
     return rows[0]
 }
-
+  
 
 const findHotelRoom = async(hotelid) => {
     const [rows] = await pool.execute('SELECT * FROM room WHERE hotel_id = ?', [hotelid])

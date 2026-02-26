@@ -36,9 +36,9 @@ const Login = () => {
 
         //重定向到主页
         if(data.data.user.role === 'merchant') {
-          navigate('/merchant-dashboard');
+          navigate('/merchant/dashboard');
         } else if(data.data.user.role === 'admin') {
-          navigate('/audit');
+          navigate('/admin/dashboard');
         }
       }
     } catch (error) {
