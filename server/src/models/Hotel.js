@@ -218,6 +218,7 @@ const Hotel = {
         h.images, 
         h.phone,
         h.room_count,
+        h.create_time,
         m.username as merchant_name
       FROM hotel h
       LEFT JOIN merchant m ON h.merchant_id = m.merchant_id

@@ -85,6 +85,8 @@ export default function HotelDetail() {
   // 弹窗控制
   const [showCalendar, setShowCalendar] = useState(false)
   const [showGuestPicker, setShowGuestPicker] = useState(false)
+  const [showBookingConfirm, setShowBookingConfirm] = useState(false)
+  const [selectedRoom, setSelectedRoom] = useState(null)
 
   // 获取酒店数据的函数（可重用于刷新）
   const fetchHotelData = async (hotelId) => {
@@ -103,6 +105,7 @@ export default function HotelDetail() {
         facilities:  raw.facilities ?? [],
         rooms:       raw.rooms      ?? [],
         phone:       raw.phone      ?? '',
+        openTime:    raw.create_time ?? '',
         price:       raw.price      ?? raw.minPrice ?? 0,
         originalPrice: raw.originalPrice ?? null,
         color:       raw.color      ?? '#1a73e8',
@@ -203,6 +206,23 @@ export default function HotelDetail() {
     }
   }
 
+  // 预订操作
+  const handleBookRoom = (room) => {
+    setSelectedRoom(room)
+    setShowBookingConfirm(true)
+  }
+  const handleQuickBook = () => {
+    if (hotel?.rooms?.length > 0) {
+      setSelectedRoom(hotel.rooms[0])
+      setShowBookingConfirm(true)
+    }
+  }
+  const handleConfirmBooking = () => {
+    setShowBookingConfirm(false)
+    setSelectedRoom(null)
+    Taro.showToast({ title: '预订成功', icon: 'success', duration: 2000 })
+  }
+
   const goBack = () => Taro.navigateTo({ url: '/pages/list/index' })
 
   if (!hotel) return <View className="detail-loading"><Text>加载中…</Text></View>
@@ -289,6 +309,11 @@ export default function HotelDetail() {
             <View className="hotel-distance-row">
               <AtIcon value='map' size='14' color='#0086F6' />
               <Text className="hotel-distance">{hotel.distance}</Text>
+            </View>
+          ) : null}
+          {hotel.openTime ? (
+            <View className="hotel-opentime-row">
+              <Text className="opentime-text">{new Date(hotel.openTime).getFullYear()}年开业</Text>
             </View>
           ) : null}
           <View className="hotel-tags-row">
@@ -444,7 +469,7 @@ export default function HotelDetail() {
                     <Text className="room-current-price">¥{room.price}</Text>
                     <Text className="room-price-unit">/晚</Text>
                   </View>
-                  <View className="room-book-btn">
+                  <View className="room-book-btn" onClick={() => handleBookRoom(room)}>
                     <Text className="room-book-text">订</Text>
                   </View>
                 </View>
@@ -464,7 +489,7 @@ export default function HotelDetail() {
           <Text className="footer-price">¥{hotel.price}</Text>
           <Text className="footer-price-unit">/晚</Text>
         </View>
-        <View className="footer-book-btn">
+        <View className="footer-book-btn" onClick={handleQuickBook}>
           <Text className="footer-book-text">立即预订</Text>
         </View>
       </View>
@@ -510,6 +535,62 @@ export default function HotelDetail() {
               <Button className="confirm-btn" onClick={() => setShowGuestPicker(false)}>
                 确定
               </Button>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 预订确认弹窗 */}
+      {showBookingConfirm && selectedRoom && (
+        <View className="booking-confirm-mask" onClick={() => setShowBookingConfirm(false)}>
+          <View className="booking-confirm-panel" onClick={(e) => e.stopPropagation()}>
+            <View className="booking-confirm-header">
+              <Text className="booking-confirm-title">确认预订</Text>
+              <View onClick={() => setShowBookingConfirm(false)}>
+                <AtIcon value="close" size="24" color="#999" />
+              </View>
+            </View>
+            <View className="booking-confirm-body">
+              <View className="booking-info-row">
+                <Text className="booking-info-label">酒店</Text>
+                <Text className="booking-info-value">{hotel.name}</Text>
+              </View>
+              <View className="booking-info-row">
+                <Text className="booking-info-label">房型</Text>
+                <Text className="booking-info-value">{selectedRoom.name}</Text>
+              </View>
+              <View className="booking-info-row">
+                <Text className="booking-info-label">入住</Text>
+                <Text className="booking-info-value">
+                  {bookingInfo.checkInDate ? `${formatDateDisplay(bookingInfo.checkInDate).month}月${formatDateDisplay(bookingInfo.checkInDate).day}日 ${formatDateDisplay(bookingInfo.checkInDate).weekday}` : '未选择'}
+                </Text>
+              </View>
+              <View className="booking-info-row">
+                <Text className="booking-info-label">离店</Text>
+                <Text className="booking-info-value">
+                  {bookingInfo.checkOutDate ? `${formatDateDisplay(bookingInfo.checkOutDate).month}月${formatDateDisplay(bookingInfo.checkOutDate).day}日 ${formatDateDisplay(bookingInfo.checkOutDate).weekday}` : '未选择'}
+                </Text>
+              </View>
+              <View className="booking-info-row">
+                <Text className="booking-info-label">晚数</Text>
+                <Text className="booking-info-value">{bookingInfo.nights}晚</Text>
+              </View>
+              <View className="booking-info-row">
+                <Text className="booking-info-label">房间</Text>
+                <Text className="booking-info-value">{bookingInfo.rooms}间</Text>
+              </View>
+              <View className="booking-price-total">
+                <Text className="booking-price-label">总价</Text>
+                <Text className="booking-price-value">¥{selectedRoom.price * bookingInfo.nights * bookingInfo.rooms}</Text>
+              </View>
+            </View>
+            <View className="booking-confirm-footer">
+              <View className="booking-btn-cancel" onClick={() => setShowBookingConfirm(false)}>
+                <Text className="booking-btn-cancel-text">取消</Text>
+              </View>
+              <View className="booking-btn-confirm" onClick={handleConfirmBooking}>
+                <Text className="booking-btn-confirm-text">确认预订</Text>
+              </View>
             </View>
           </View>
         </View>
