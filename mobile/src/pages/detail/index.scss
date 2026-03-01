@@ -139,6 +139,11 @@
         .hotel-distance { font-size: 22px; color: #0086F6; flex: 1; line-height: 1.5; }
       }
 
+      .hotel-opentime-row {
+        margin-bottom: 10px;
+        .opentime-text { font-size: 22px; color: #999; }
+      }
+
       .hotel-tags-row {
         display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px;
         .hotel-tag { font-size: 20px; color: #0086F6; background-color: #e8f4ff; padding: 4px 14px; border-radius: 4px; }
@@ -490,5 +495,107 @@
     font-weight: bold;
     color: #fff;
     margin-top: 32px;
+  }
+}
+
+// 预订确认弹窗
+.booking-confirm-mask {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.booking-confirm-panel {
+  width: 100%;
+  background-color: #fff;
+  border-radius: 24px 24px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.booking-confirm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid #f0f0f0;
+
+  .booking-confirm-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+  }
+}
+
+.booking-confirm-body {
+  padding: 24px 32px;
+
+  .booking-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid #f8f8f8;
+
+    .booking-info-label {
+      font-size: 26px;
+      color: #999;
+      flex-shrink: 0;
+    }
+
+    .booking-info-value {
+      font-size: 26px;
+      color: #333;
+      text-align: right;
+      flex: 1;
+      margin-left: 24px;
+    }
+  }
+
+  .booking-price-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 8px;
+
+    .booking-price-label {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .booking-price-value {
+      font-size: 40px;
+      font-weight: bold;
+      color: #FF5722;
+    }
+  }
+}
+
+.booking-confirm-footer {
+  display: flex;
+  padding: 24px 32px;
+  gap: 24px;
+
+  .booking-btn-cancel,
+  .booking-btn-confirm {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 0;
+    border-radius: 44px;
+  }
+
+  .booking-btn-cancel {
+    background-color: #f5f5f5;
+    .booking-btn-cancel-text { font-size: 28px; color: #666; }
+  }
+
+  .booking-btn-confirm {
+    background-color: #0086F6;
+    .booking-btn-confirm-text { font-size: 28px; color: #fff; font-weight: bold; }
   }
 }

@@ -1,11 +1,12 @@
 import { View, Text, ScrollView, Button, Input, Image } from '@tarojs/components'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Taro from '@tarojs/taro'
 import { AtIcon } from 'taro-ui'
 import CalendarPicker from '../../components/CalendarPicker'
 import PriceRangeSlider from '../../components/PriceRangeSlider'
 import { searchHotels } from '../../services/hotel'
 import { getAllTags } from '../../services/tag'
+import { useLoadMore } from '../../hooks/useLoadMore'
 import './index.scss'
 
 // filter-bar 的 tab，key 与 API sortBy 参数对应
@@ -69,6 +70,9 @@ export default function HotelList() {
 
   // ScrollView 动态高度
   const [scrollHeight, setScrollHeight] = useState(0)
+  
+  // 哨兵元素引用（用于无限滚动）
+  const sentinelRef = useRef(null)
 
   // 编辑面板状态
   const [showEditPanel, setShowEditPanel] = useState(false)
@@ -206,6 +210,16 @@ export default function HotelList() {
     console.log('[loadMore] 开始加载第', page + 1, '页')
     fetchHotels(params, page + 1, false)
   }
+
+  // 使用自定义 Hook 实现无限滚动（哨兵模式）
+  useLoadMore({
+    selector: '.load-sentinel',
+    ref: sentinelRef,
+    hasMore,
+    loading: loadingMore,
+    onLoadMore: loadMore,
+    deps: [hotels.length]
+  })
 
   // 搜索关键词（调用后端 API）
   // 后端会自动识别地点名称并计算距离
@@ -506,8 +520,6 @@ export default function HotelList() {
         className="hotel-scroll"
         scrollY
         enhanced
-        onScrollToLower={loadMore}
-        lowerThreshold={150}
         style={{ height: scrollHeight ? `${scrollHeight}px` : 'calc(100vh - 180px)' }}
       >
         {loading && (
@@ -579,15 +591,23 @@ export default function HotelList() {
           </View>
         )}
 
-        {/* 底部加载状态 */}
+        {/* 底部加载状态 + 哨兵元素 */}
         {!loading && sorted.length > 0 && (
           <View className="list-footer">
             {loadingMore ? (
               <Text className="list-footer-text">加载中...</Text>
             ) : hasMore ? (
-              <Text className="list-footer-text" onClick={loadMore}>点击或上滑加载更多</Text>
+              <Text className="list-footer-text">上滑加载更多</Text>
             ) : (
               <Text className="list-footer-text">— 已显示全部结果 —</Text>
+            )}
+            {/* 哨兵元素：当进入视口时触发加载更多 */}
+            {hasMore && (
+              <View
+                ref={sentinelRef}
+                className="load-sentinel"
+                style={{ height: '1px', width: '100%' }}
+              />
             )}
           </View>
         )}
